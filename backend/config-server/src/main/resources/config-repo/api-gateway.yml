@@ -1,0 +1,45 @@
+# Anh xa route -> quyen yeu cau cho api-gateway (xem docs/architecture/rbac.md muc 6).
+# Sua file nay khong can build lai image, chi can restart/refresh config.
+authorization:
+  public-routes:
+    - path: /api/users/auth/register
+      method: POST
+    - path: /api/users/auth/login
+      method: POST
+    - path: /api/users/auth/refresh
+      method: POST
+    - path: /api/users/auth/logout
+      method: POST
+    - path: /actuator/health
+    - path: /api/products
+      method: GET
+    - path: /api/products/**
+      method: GET
+    - path: /api/categories
+      method: GET
+    - path: /api/categories/**
+      method: GET
+
+  authenticated-only:
+    - path: /api/users/me
+      method: GET
+
+  permission-required:
+    - path: /api/products
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/products/**
+      method: PUT
+      permission: PRODUCT_UPDATE
+    - path: /api/products/**
+      method: DELETE
+      permission: PRODUCT_DELETE
+    - path: /api/categories
+      method: POST
+      permission: CATEGORY_MANAGE
+    - path: /api/categories/**
+      method: PUT
+      permission: CATEGORY_MANAGE
+    - path: /api/categories/**
+      method: DELETE
+      permission: CATEGORY_MANAGE

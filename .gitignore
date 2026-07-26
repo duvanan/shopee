@@ -1,0 +1,29 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Claude Code local session state
+.claude/
+
+# Backend (Maven)
+**/target/
+
+# Frontend (Node/Vite)
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Env files
+.env
+.env.local
+
+# Runtime logs (nohup/redirected stdout-stderr from local dev runs)
+*.log
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# OS
+Thumbs.db

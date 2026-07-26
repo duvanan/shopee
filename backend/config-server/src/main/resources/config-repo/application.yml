@@ -1,0 +1,9 @@
+# Cau hinh dung chung cho tat ca cac service, lay tu Config Server
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always

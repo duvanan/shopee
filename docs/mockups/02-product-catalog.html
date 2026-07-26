@@ -1,0 +1,214 @@
+<title>02 — Product Catalog Wireframe</title>
+<style>
+  :root {
+    --bg: #f4f2ee;
+    --surface: #ffffff;
+    --ink: #201d1a;
+    --muted: #6f6a63;
+    --faint: #a7a099;
+    --border: #ddd7cd;
+    --accent: #ee4d2d;
+    --accent-ink: #ffffff;
+    --accent-soft: #fdece7;
+    --error: #c8372c;
+    --error-soft: #fbeae8;
+    --annot: #1f6f6b;
+    --annot-soft: #e8f3f2;
+    --skeleton: #ece8e1;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --bg: #18181a; --surface: #232325; --ink: #ece9e4; --muted: #9d978e; --faint: #6b665f;
+    --border: #38373a; --accent: #ff6a45; --accent-ink: #1a0d09; --accent-soft: #3a2019;
+    --error: #ff8577; --error-soft: #3a1e1b; --annot: #6bc9c3; --annot-soft: #163330; --skeleton: #2c2b2c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #18181a; --surface: #232325; --ink: #ece9e4; --muted: #9d978e; --faint: #6b665f;
+      --border: #38373a; --accent: #ff6a45; --accent-ink: #1a0d09; --accent-soft: #3a2019;
+      --error: #ff8577; --error-soft: #3a1e1b; --annot: #6bc9c3; --annot-soft: #163330; --skeleton: #2c2b2c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+
+  .page { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header.doc-head { display: flex; flex-direction: column; gap: 6px; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 26px; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .doc-head p { margin: 0; color: var(--muted); font-size: 14px; max-width: 66ch; }
+  .doc-head code { font-family: var(--mono); background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+
+  .tabs { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 28px; }
+  .tab { font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--muted); background: transparent; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* --- List screen --- */
+  .toolbar { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .search-box, .filter-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; font-size: 13.5px; color: var(--faint); }
+  .search-box { flex: 1; min-width: 220px; }
+  .filter-box { min-width: 160px; }
+
+  .chips { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .chip { font-size: 12.5px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; position: relative; }
+  .card .thumb { aspect-ratio: 1; background: linear-gradient(135deg, var(--skeleton), var(--border)); display: flex; align-items: center; justify-content: center; color: var(--faint); font-family: var(--mono); font-size: 11px; }
+  .card .body { padding: 10px 11px 12px; }
+  .card .name { font-size: 12.5px; line-height: 1.35; margin: 0 0 6px; color: var(--ink); }
+  .card .price { font-size: 14px; font-weight: 700; color: var(--accent); }
+
+  .card.skeleton .thumb { background: var(--skeleton); }
+  .card.skeleton .line { height: 9px; border-radius: 4px; background: var(--skeleton); margin-bottom: 6px; }
+  .card.skeleton .line.short { width: 60%; }
+
+  .mark { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--annot); color: var(--bg); font-family: var(--mono); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; top: 6px; right: 6px; }
+
+  .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 22px; }
+  .page-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12.5px; display: flex; align-items: center; justify-content: center; }
+  .page-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  .empty-state, .error-state { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13.5px; border: 1px dashed var(--border); border-radius: 10px; }
+  .error-state { color: var(--error); border-color: var(--error); background: var(--error-soft); }
+
+  .section-title { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin: 32px 0 12px; }
+
+  /* --- Detail screen --- */
+  .detail-layout { display: grid; grid-template-columns: minmax(240px, 360px) 1fr; gap: 32px; }
+  @media (max-width: 720px) { .detail-layout { grid-template-columns: 1fr; } }
+  .detail-image { aspect-ratio: 1; border-radius: 12px; background: linear-gradient(135deg, var(--skeleton), var(--border)); display: flex; align-items: center; justify-content: center; color: var(--faint); font-family: var(--mono); font-size: 12px; }
+  .breadcrumb { font-size: 12px; color: var(--faint); margin-bottom: 14px; }
+  .breadcrumb b { color: var(--muted); font-weight: 600; }
+  .detail-info h2 { font-size: 21px; margin: 0 0 8px; text-wrap: balance; }
+  .detail-price { font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+  .detail-meta { display: flex; gap: 18px; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
+  .detail-meta b { color: var(--ink); }
+  .detail-desc { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin-bottom: 22px; max-width: 60ch; }
+  .btn-wrap { position: relative; display: inline-block; }
+  .btn-add-cart { border: none; border-radius: 8px; background: var(--faint); color: var(--surface); font-weight: 700; font-size: 14px; padding: 12px 28px; cursor: not-allowed; opacity: 0.7; }
+  .not-found { text-align: center; padding: 60px 20px; }
+  .not-found .code { font-family: var(--mono); font-size: 44px; color: var(--faint); }
+
+  .annotations { margin-top: 28px; }
+  .annotations h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 14px; font-family: var(--mono); }
+  .annot-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .annot-list li { display: flex; gap: 10px; align-items: flex-start; background: var(--annot-soft); border-radius: 8px; padding: 10px 12px; }
+  .annot-list .num { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--annot); color: var(--bg); font-family: var(--mono); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .annot-list .txt { font-size: 13px; line-height: 1.45; }
+  .annot-list .txt b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .annot-list .txt span { color: var(--muted); font-size: 12.5px; }
+
+  footer.doc-foot { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--faint); font-family: var(--mono); }
+</style>
+
+<div class="page">
+  <header class="doc-head">
+    <span class="kicker">Shopee Clone · BA Wireframe</span>
+    <h1>02 — Danh mục &amp; Sản phẩm</h1>
+    <p>Wireframe low-fidelity cho 2 màn hình trong <code>docs/features/02-product-catalog.md</code>: danh sách sản phẩm (search/filter/phân trang) và chi tiết sản phẩm.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Chọn màn hình">
+    <button class="tab" role="tab" aria-selected="true" data-target="list">Danh sách sản phẩm</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="detail">Chi tiết sản phẩm</button>
+  </div>
+
+  <!-- LIST -->
+  <section class="screen active" id="screen-list">
+    <div class="toolbar">
+      <div class="search-box">🔍 Tìm sản phẩm theo tên…</div>
+      <div class="filter-box">Danh mục ▾</div>
+    </div>
+    <div class="chips">
+      <span class="chip active">Tất cả</span>
+      <span class="chip">Thời trang nam</span>
+      <span class="chip">Điện tử</span>
+      <span class="chip">Đồ gia dụng</span>
+    </div>
+
+    <div class="section-title">Trạng thái bình thường — có dữ liệu</div>
+    <div class="grid">
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Áo thun nam cotton</p><div class="price">150.000₫</div></div></div>
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Tai nghe bluetooth</p><div class="price">399.000₫</div></div></div>
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Nồi chiên không dầu</p><div class="price">1.290.000₫</div></div></div>
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Balo laptop 15 inch</p><div class="price">459.000₫</div></div></div>
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Ốp lưng điện thoại</p><div class="price">59.000₫</div></div></div>
+      <div class="card"><div class="thumb">image</div><div class="body"><p class="name">Đèn bàn LED</p><div class="price">189.000₫</div></div></div>
+    </div>
+    <div class="pagination">
+      <div class="page-btn active">1</div><div class="page-btn">2</div><div class="page-btn">3</div><div class="page-btn">…</div><div class="page-btn">6</div>
+    </div>
+
+    <div class="section-title">Trạng thái loading (skeleton)</div>
+    <div class="grid" style="margin-bottom: 24px;">
+      <div class="card skeleton"><div class="thumb"></div><div class="body"><div class="line"></div><div class="line short"></div></div></div>
+      <div class="card skeleton"><div class="thumb"></div><div class="body"><div class="line"></div><div class="line short"></div></div></div>
+      <div class="card skeleton"><div class="thumb"></div><div class="body"><div class="line"></div><div class="line short"></div></div></div>
+    </div>
+
+    <div class="section-title">Trạng thái rỗng / lỗi</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="empty-state">📦 Không tìm thấy sản phẩm nào khớp bộ lọc.<br>Thử từ khoá hoặc danh mục khác.</div>
+      <div class="error-state">⚠ Không tải được danh sách sản phẩm. <br>Vui lòng thử lại.</div>
+    </div>
+  </section>
+
+  <!-- DETAIL -->
+  <section class="screen" id="screen-detail">
+    <div class="breadcrumb">Trang chủ / Thời trang nam / <b>Áo thun nam cotton</b></div>
+    <div class="detail-layout">
+      <div style="position:relative;">
+        <div class="detail-image">product image</div>
+      </div>
+      <div class="detail-info">
+        <h2>Áo thun nam cotton form rộng</h2>
+        <div class="detail-price">150.000₫</div>
+        <div class="detail-meta">
+          <span>Còn lại: <b>42</b></span>
+          <span>Danh mục: <b>Thời trang nam</b></span>
+        </div>
+        <p class="detail-desc">Chất liệu cotton 100%, thoáng mát, form rộng phù hợp mặc hàng ngày hoặc tập thể thao nhẹ. Có nhiều size từ M đến XXL.</p>
+        <div class="btn-wrap">
+          <button class="btn-add-cart" disabled>Thêm vào giỏ</button>
+          <span class="mark">1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Trạng thái không tìm thấy (404)</div>
+    <div class="not-found">
+      <div class="code">404</div>
+      <p style="color: var(--muted); font-size: 13.5px;">Không tìm thấy sản phẩm này — có thể đã bị gỡ hoặc đường link không đúng.</p>
+    </div>
+
+    <div class="annotations">
+      <h3>Ghi chú trạng thái</h3>
+      <ul class="annot-list">
+        <li><span class="num">1</span><span class="txt"><b>Nút "Thêm vào giỏ" — disabled ở chức năng này</b><span>Kích hoạt thật khi làm chức năng 03 (Cart). Ở đây chỉ hiển thị vị trí trong layout.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="doc-foot">docs/mockups/02-product-catalog.html · tham chiếu bởi docs/features/02-product-catalog.md §8</footer>
+</div>
+
+<script>
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      tab.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+      document.getElementById("screen-" + tab.dataset.target).classList.add("active");
+    });
+  });
+</script>
