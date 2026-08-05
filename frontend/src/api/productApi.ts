@@ -1,32 +1,46 @@
 import { http } from "@/api/http";
 import type { ApiResponse, PageData } from "@/types/api";
 import type {
-  CategoryResponse,
+  AttributeValueGroup,
   ProductCreatePayload,
+  ProductDetailResponse,
   ProductListParams,
-  ProductResponse,
+  ProductSummaryResponse,
   ProductUpdatePayload,
+  VariantCombinationResponse,
 } from "@/types/product";
 
 export const productApi = {
   list(params: ProductListParams = {}) {
     return http
-      .get<ApiResponse<PageData<ProductResponse>>>("/api/products", { params })
+      .get<ApiResponse<PageData<ProductSummaryResponse>>>("/api/v1/public/products", { params })
       .then((res) => res.data.data);
   },
-  get(id: string) {
-    return http.get<ApiResponse<ProductResponse>>(`/api/products/${id}`).then((res) => res.data.data);
+  getBySlug(slug: string) {
+    return http
+      .get<ApiResponse<ProductDetailResponse>>(`/api/v1/public/products/${slug}`)
+      .then((res) => res.data.data);
   },
-  listCategories() {
-    return http.get<ApiResponse<CategoryResponse[]>>("/api/categories").then((res) => res.data.data);
+  listAdmin(params: { search?: string; page?: number; size?: number } = {}) {
+    return http
+      .get<ApiResponse<PageData<ProductSummaryResponse>>>("/api/v1/admin/products", { params })
+      .then((res) => res.data.data);
+  },
+  getById(id: string) {
+    return http.get<ApiResponse<ProductDetailResponse>>(`/api/v1/admin/products/${id}`).then((res) => res.data.data);
   },
   create(payload: ProductCreatePayload) {
-    return http.post<ApiResponse<ProductResponse>>("/api/products", payload).then((res) => res.data.data);
+    return http.post<ApiResponse<ProductDetailResponse>>("/api/v1/admin/products", payload).then((res) => res.data.data);
   },
   update(id: string, payload: ProductUpdatePayload) {
-    return http.put<ApiResponse<ProductResponse>>(`/api/products/${id}`, payload).then((res) => res.data.data);
+    return http.put<ApiResponse<ProductDetailResponse>>(`/api/v1/admin/products/${id}`, payload).then((res) => res.data.data);
   },
   remove(id: string) {
-    return http.delete(`/api/products/${id}`);
+    return http.delete(`/api/v1/admin/products/${id}`);
+  },
+  generateVariantPreview(attributeGroups: AttributeValueGroup[]) {
+    return http
+      .post<ApiResponse<VariantCombinationResponse[]>>("/api/v1/admin/products/variants/generate-preview", { attributeGroups })
+      .then((res) => res.data.data);
   },
 };

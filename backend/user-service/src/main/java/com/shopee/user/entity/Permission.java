@@ -26,5 +26,16 @@ public class Permission extends Auditable {
     @Column(nullable = false, unique = true)
     private String code;
 
+    @Column(nullable = false)
+    private String name;
+
     private String description;
+
+    /** Nhom nghiep vu (VD "Sản phẩm", "Đơn hàng") - dung de gom nhom hien thi tren man Phan quyen. */
+    @Column(nullable = false)
+    private String module;
+
+    @Column(name = "is_system", nullable = false)
+    @Builder.Default
+    private boolean isSystem = true;
 }

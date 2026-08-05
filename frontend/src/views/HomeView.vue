@@ -3,15 +3,16 @@ import { onMounted, reactive, ref, watch } from "vue";
 
 import ProductCard from "@/components/ProductCard.vue";
 import { productApi } from "@/api/productApi";
+import { categoryApi } from "@/api/categoryApi";
 import type { PageData } from "@/types/api";
-import type { CategoryResponse, ProductResponse } from "@/types/product";
+import type { CategoryResponse, ProductSummaryResponse } from "@/types/product";
 
 const PAGE_SIZE = 12;
 
 const categories = ref<CategoryResponse[]>([]);
 // filters.page is 0-based internally (matches goToPage/button index math below);
 // converted to the API's 1-based `page` param at the call site.
-const products = ref<PageData<ProductResponse> | null>(null);
+const products = ref<PageData<ProductSummaryResponse> | null>(null);
 
 const filters = reactive({
   search: "",
@@ -42,7 +43,7 @@ async function fetchProducts() {
 
 async function fetchCategories() {
   try {
-    categories.value = await productApi.listCategories();
+    categories.value = await categoryApi.list();
   } catch {
     categories.value = [];
   }

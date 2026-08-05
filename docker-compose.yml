@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shopee-postgres
+    environment:
+      POSTGRES_USER: shopee
+      POSTGRES_PASSWORD: shopee
+      POSTGRES_DB: shopee_user
+      # Bat buoc icu/vi-VN de ILIKE/case-insensitive search khop dung ky tu
+      # co dau tieng Viet - xem docs/LOCAL_DEV_SETUP.md muc Postgres.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=vi-VN"
+    ports:
+      - "5432:5432"
+    volumes:
+      - shopee_postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: shopee-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  shopee_postgres_data:

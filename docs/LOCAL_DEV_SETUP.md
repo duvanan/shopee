@@ -1,6 +1,8 @@
 # Môi trường dev local
 
-> **Cập nhật:** Docker Desktop **đã cài và chạy được** (daemon lên bình thường, `docker version`/`docker run` hoạt động) — phần mô tả "không cài được Docker" bên dưới là lịch sử, giữ lại vì Postgres/Node/Maven portable vẫn đang được dùng song song (không có lý do phải di dời sang container). Từ giờ, thành phần hạ tầng mới (VD Redis cho refresh token) sẽ chạy bằng Docker container thay vì tìm bản portable.
+> **Cập nhật (mới nhất):** Postgres **đã chuyển hẳn sang Docker Compose** (`docker-compose.yml` ở gốc repo, service `postgres` + `redis`), không còn dùng bản portable ở `C:\Users\nc\tools\pgsql` nữa (giữ lại thư mục đó trên máy nhưng không chạy). Dữ liệu cũ trong bản portable **không được migrate** (chỉ là data test, đã quyết định làm mới hoàn toàn) - Flyway tự tạo lại schema từ đầu trên DB Docker. Xem mục Postgres/Redis bên dưới đã cập nhật theo cách chạy mới.
+>
+> **Cập nhật cũ hơn:** Docker Desktop **đã cài và chạy được** (daemon lên bình thường, `docker version`/`docker run` hoạt động) — phần mô tả "không cài được Docker" bên dưới là lịch sử. Node/Maven portable vẫn đang dùng song song (không có lý do phải di dời sang container).
 
 Máy dev hiện tại **không cài Node.js/Maven** mặc định, và trước đây **Docker Desktop cài rồi nhưng daemon không chạy được** (thiếu WSL2 kernel, `wsl --update` lỗi "service cannot be started" — cần quyền admin để bật tính năng Windows). Vì vậy Node/Maven/Postgres được cài dạng **portable (giải nén, không cần admin)** vào `C:\Users\nc\tools`, thay cho `docker-compose` ở `docs/ROADMAP.md` phase 2. Phần này vẫn còn đúng và vẫn là cách chạy 3 tool đó.
 
@@ -9,9 +11,9 @@ Máy dev hiện tại **không cài Node.js/Maven** mặc định, và trước 
 | Tool | Đường dẫn | Ghi chú |
 |---|---|---|
 | Node.js 24.18.0 | `C:\Users\nc\tools\node` | Đã thêm vào **user PATH** (registry), nhưng mỗi phiên PowerShell mới cần set lại `$env:Path` nếu chạy qua tool tự động — xem lệnh mẫu bên dưới |
-| Apache Maven 3.9.16 | `C:\Users\nc\tools\apache-maven-3.9.16` | Cần `JAVA_HOME` trỏ đúng `C:\Program Files\Java\jdk-25.0.3` (không phải `...\javapath`, đó chỉ là shim) |
-| PostgreSQL 16.14 (portable, không installer) | `C:\Users\nc\tools\pgsql` (binaries), `C:\Users\nc\tools\pgsql-data` (data dir) | Chỉ có `postgres.exe`/`initdb.exe`/`pg_ctl.exe` — **không có `psql`/`createdb`**, dùng JDBC (xem bên dưới) nếu cần chạy SQL tay |
-| Redis 7 (Docker container) | image `redis:7-alpine`, container tên `shopee-redis`, port `6379` | Dùng cho refresh token (`user-service`) — xem mục Redis bên dưới. Không cần volume/persistence riêng (mất refresh token khi container bị xoá chỉ bắt người dùng đăng nhập lại, không mất dữ liệu nghiệp vụ) |
+| Apache Maven 3.9.16 | `C:\Users\nc\tools\apache-maven-3.9.16` | Cần `JAVA_HOME` trỏ đúng `C:\Program Files\Java\jdk-25.0.3` (không phải `...\javapath`, đó chỉ là shim); cũng không có trong PATH mặc định, set `$env:Path` mỗi phiên mới |
+| PostgreSQL 16 (Docker) | `docker-compose.yml` ở gốc repo, service `postgres`, container `shopee-postgres`, port `5432` | Khởi tạo với `POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=vi-VN` (bắt buộc cho search tiếng Việt đúng, xem mục Postgres bên dưới). 2 database `shopee_user`/`shopee_product` tạo tự động qua `infra/postgres/init-databases.sql` (chỉ chạy lần đầu, data dir rỗng) |
+| Redis 7 (Docker) | `docker-compose.yml`, container `shopee-redis`, port `6379` | Dùng cho refresh token/session (`user-service`) — xem mục Redis bên dưới. Không cần volume/persistence riêng (mất session khi container bị xoá chỉ bắt người dùng đăng nhập lại, không mất dữ liệu nghiệp vụ) |
 
 ## Lệnh khởi động nhanh (mỗi phiên PowerShell mới)
 
@@ -20,32 +22,19 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.3"
 $env:Path += ";$env:JAVA_HOME\bin;C:\Users\nc\tools\apache-maven-3.9.16\bin;C:\Users\nc\tools\node"
 ```
 
-### Postgres
+### Postgres + Redis (Docker Compose)
 
 ```powershell
-$pgBin = "C:\Users\nc\tools\pgsql\bin"
-$dataDir = "C:\Users\nc\tools\pgsql-data"
-& "$pgBin\pg_ctl.exe" -D $dataDir -l "$dataDir\server.log" start   # start
-& "$pgBin\pg_ctl.exe" -D $dataDir stop                              # stop
+docker compose up -d      # bật ca postgres + redis (lan dau se pull image)
+docker compose ps         # kiem tra dang chay
+docker compose stop       # tat, giu du lieu (volume)
 ```
 
-Cluster được khởi tạo với `--locale-provider=icu --icu-locale=vi-VN` (không phải `--locale=C` mặc định) — **bắt buộc** để `ILIKE`/case-insensitive search hoạt động đúng với ký tự có dấu tiếng Việt (VD: tìm "đèn" phải khớp được "Đèn bàn LED"). Nếu khởi tạo lại cluster từ đầu, nhớ giữ nguyên 2 flag này, nếu không search sẽ chỉ khớp đúng chữ hoa/thường y hệt byte-for-byte.
+Chạy từ thư mục gốc repo (`docker-compose.yml` nằm ở đó). `POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=vi-VN` được set trong file compose — **bắt buộc** để `ILIKE`/case-insensitive search khớp đúng ký tự có dấu tiếng Việt (VD: tìm "đèn" phải khớp được "Đèn bàn LED"). Chỉ áp dụng lúc khởi tạo lần đầu (data dir rỗng) — nếu cần khởi tạo lại từ đầu, `docker compose down -v` để xoá volume rồi `up -d` lại, đừng chỉnh sửa flag này sau khi cluster đã tồn tại.
 
 - Superuser: `shopee` / mật khẩu `shopee` (khớp default trong mọi `application.yml`), lắng nghe port mặc định `5432`.
-- Database `shopee_user` đã được tạo. Tạo thêm DB khác (VD `shopee_product`) bằng cách chạy 1 câu JDBC (không có `createdb.exe`):
-  ```powershell
-  # cần postgresql-jdbc.jar (đã tải sẵn tại C:\Users\nc\tools\postgresql-jdbc.jar) và JAVA_HOME đã set
-  # biên dịch/chạy 1 class Java nhỏ gọi Statement.execute("CREATE DATABASE ...") tới jdbc:postgresql://localhost:5432/postgres
-  ```
-
-### Redis (refresh token)
-
-```powershell
-docker run -d --name shopee-redis -p 6379:6379 --restart unless-stopped redis:7-alpine   # lần đầu
-docker start shopee-redis                                                                # các lần sau
-```
-
-`user-service` cần Redis chạy trước khi start (Spring Boot fail-fast nếu không kết nối được lúc gọi `/register`/`/login`/`/refresh`/`/logout` — các endpoint khác không bị ảnh hưởng). Xem cấu hình ở `jwt.refresh-expiration-days` (mặc định 30 ngày, override bằng `JWT_REFRESH_EXPIRATION_DAYS`) và `app.cookie.secure` (mặc định `false` cho dev http, override bằng `COOKIE_SECURE=true` khi chạy sau HTTPS thật).
+- 2 database `shopee_user` và `shopee_product` được tạo tự động qua script `infra/postgres/init-databases.sql` (mount vào `/docker-entrypoint-initdb.d/`, chỉ chạy lần đầu). Muốn chạy SQL tay: `docker exec -it shopee-postgres psql -U shopee -d shopee_user` (image chính thức có sẵn `psql`, khác bản portable cũ).
+- Redis không cần lệnh riêng nữa — cùng lên/tắt với Postgres qua `docker compose up -d`/`stop`. `user-service` cần Redis chạy trước khi start (Spring Boot fail-fast nếu không kết nối được lúc gọi `/register`/`/login`/`/refresh`/`/logout`/`/sessions` — các endpoint khác không bị ảnh hưởng). Xem cấu hình ở `jwt.refresh-expiration-days` (mặc định 30 ngày, override bằng `JWT_REFRESH_EXPIRATION_DAYS`) và `app.cookie.secure` (mặc định `false` cho dev http, override bằng `COOKIE_SECURE=true` khi chạy sau HTTPS thật).
 
 ### Backend (Maven, chạy tuần tự: eureka → config-server → api-gateway → user-service → product-service)
 

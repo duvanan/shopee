@@ -1,6 +1,15 @@
 import { http } from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { AuthResponse, LoginPayload, RegisterPayload, UserResponse } from "@/types/auth";
+import type {
+  AuthResponse,
+  ChangePasswordPayload,
+  ForgotPasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+  ResetPasswordPayload,
+  SessionResponse,
+  UserResponse,
+} from "@/types/auth";
 
 export const authApi = {
   register(payload: RegisterPayload) {
@@ -19,5 +28,23 @@ export const authApi = {
   },
   logout() {
     return http.post<void>("/api/users/auth/logout");
+  },
+  logoutAll() {
+    return http.post<void>("/api/users/auth/logout-all");
+  },
+  changePassword(payload: ChangePasswordPayload) {
+    return http.post<ApiResponse<void>>("/api/users/auth/change-password", payload).then((res) => res.data);
+  },
+  forgotPassword(payload: ForgotPasswordPayload) {
+    return http.post<ApiResponse<void>>("/api/users/auth/forgot-password", payload).then((res) => res.data);
+  },
+  resetPassword(payload: ResetPasswordPayload) {
+    return http.post<ApiResponse<void>>("/api/users/auth/reset-password", payload).then((res) => res.data);
+  },
+  listSessions() {
+    return http.get<ApiResponse<SessionResponse[]>>("/api/users/auth/sessions").then((res) => res.data.data);
+  },
+  revokeSession(sessionId: string) {
+    return http.delete(`/api/users/auth/sessions/${sessionId}`);
   },
 };

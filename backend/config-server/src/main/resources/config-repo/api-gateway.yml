@@ -10,14 +10,16 @@ authorization:
       method: POST
     - path: /api/users/auth/logout
       method: POST
+    - path: /api/users/auth/forgot-password
+      method: POST
+    - path: /api/users/auth/reset-password
+      method: POST
     - path: /actuator/health
-    - path: /api/products
+    - path: /api/v1/public/products
       method: GET
-    - path: /api/products/**
+    - path: /api/v1/public/products/**
       method: GET
-    - path: /api/categories
-      method: GET
-    - path: /api/categories/**
+    - path: /api/v1/public/categories
       method: GET
 
   authenticated-only:
@@ -25,21 +27,145 @@ authorization:
       method: GET
 
   permission-required:
-    - path: /api/products
+    # Dynamic product catalog (docs/features/03-dynamic-product-catalog.md muc 8) -
+    # rule cu the (variant generate-preview/inventory) phai dung TRUOC rule chung
+    # /api/v1/admin/products/** ben duoi, cung ly do voi khoi users/admin phia duoi.
+    - path: /api/v1/admin/products/variants/generate-preview
       method: POST
       permission: PRODUCT_CREATE
-    - path: /api/products/**
+    - path: /api/v1/admin/products/variants/*/inventory/import
+      method: POST
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/products
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/products
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/products/**
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/products/**
       method: PUT
       permission: PRODUCT_UPDATE
-    - path: /api/products/**
+    - path: /api/v1/admin/products/**
       method: DELETE
       permission: PRODUCT_DELETE
-    - path: /api/categories
+    - path: /api/v1/admin/brands
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/brands
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/brands/**
+      method: PUT
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-attributes
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-attributes
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/product-attributes/**
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-attributes/**
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/product-attributes/**
+      method: PUT
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/categories
+      method: GET
+      permission: CATEGORY_MANAGE
+    - path: /api/v1/admin/categories
       method: POST
       permission: CATEGORY_MANAGE
-    - path: /api/categories/**
+    - path: /api/v1/admin/categories/**
+      method: GET
+      permission: CATEGORY_MANAGE
+    - path: /api/v1/admin/categories/**
       method: PUT
       permission: CATEGORY_MANAGE
-    - path: /api/categories/**
+    - path: /api/v1/admin/categories/**
       method: DELETE
       permission: CATEGORY_MANAGE
+    # Product Type + Attribute Set (xem
+    # docs/architecture/product-type-attribute-set-dynamic-product-ui-ux-spec-flyway.md).
+    # Dung chung nhom quyen PRODUCT_* nhu brand/attribute, khong tach rieng
+    # 16 permission nhu tai lieu goc de.
+    - path: /api/v1/admin/product-types/**/attribute-schema
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-types
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-types
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/product-types/**
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-types/**
+      method: PUT
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-types/**
+      method: POST
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/product-types/**
+      method: DELETE
+      permission: PRODUCT_DELETE
+    - path: /api/v1/admin/attribute-sets
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/attribute-sets
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/attribute-sets/**
+      method: GET
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/attribute-sets/**
+      method: PUT
+      permission: PRODUCT_UPDATE
+    - path: /api/v1/admin/attribute-sets/**
+      method: POST
+      permission: PRODUCT_CREATE
+    - path: /api/v1/admin/attribute-sets/**
+      method: DELETE
+      permission: PRODUCT_DELETE
+    # Rule cu the (roles/audit-logs) phai dung TRUOC rule chung /api/users/admin/**
+    # ben duoi - matching lay rule DAU TIEN khop trong danh sach, khong tu uu
+    # tien "cu the hon" (xem JwtAuthenticationFilter.findMatch).
+    - path: /api/users/admin/roles
+      method: GET
+      permission: ROLE_MANAGE
+    - path: /api/users/admin/roles/**
+      method: GET
+      permission: ROLE_MANAGE
+    - path: /api/users/admin/roles
+      method: POST
+      permission: ROLE_MANAGE
+    - path: /api/users/admin/roles/**
+      method: PUT
+      permission: ROLE_MANAGE
+    - path: /api/users/admin/roles/**
+      method: DELETE
+      permission: ROLE_MANAGE
+    - path: /api/users/admin/audit-logs
+      method: GET
+      permission: AUDIT_LOG_VIEW
+    - path: /api/users/admin/audit-logs/**
+      method: GET
+      permission: AUDIT_LOG_VIEW
+    - path: /api/users/admin/**
+      method: GET
+      permission: USER_MANAGE
+    - path: /api/users/admin/**
+      method: POST
+      permission: USER_MANAGE
+    - path: /api/users/admin/**
+      method: PUT
+      permission: USER_MANAGE
+    - path: /api/users/admin/**
+      method: DELETE
+      permission: USER_MANAGE

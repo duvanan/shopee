@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -38,4 +39,24 @@ public class User extends Auditable {
     private String fullName;
 
     private String phone;
+
+    /** Auto-lock dang nhap sai nhieu lan - xem AuthService.login(). */
+    @Column(name = "failed_login_attempts", nullable = false)
+    @Builder.Default
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
+    @Column(name = "last_login_at")
+    private Instant lastLoginAt;
+
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
+    /** Khoa thu cong boi admin - xem UserStatus. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
 }

@@ -9,6 +9,7 @@ import {
   setStoredToken,
   setUnauthorizedHandler,
 } from "@/api/http";
+import { ADMIN_ACCESS_PERMISSIONS, hasAnyPermission } from "@/constants/permissions";
 import type { LoginPayload, RegisterPayload, UserResponse } from "@/types/auth";
 
 export const useAuthStore = defineStore("auth", () => {
@@ -16,7 +17,14 @@ export const useAuthStore = defineStore("auth", () => {
   const token = ref<string | null>(getStoredToken());
 
   const isAuthenticated = computed(() => token.value !== null);
-  const isAdmin = computed(() => user.value?.roles.includes("ADMIN") ?? false);
+  const permissions = computed(() => user.value?.permissions ?? []);
+  function hasPermission(code: string): boolean {
+    return permissions.value.includes(code);
+  }
+  // Vao duoc /admin khong con dua vao ten role (VD "ADMIN") ma dua vao co it
+  // nhat 1 permission thuc su dung toi man nao do - role tuy bien nhu "STAFF"
+  // duoc gan du permission van vao duoc, khong bi khoa chi vi khong ten "ADMIN".
+  const canAccessAdmin = computed(() => hasAnyPermission(permissions.value, ADMIN_ACCESS_PERMISSIONS));
 
   function setSession(accessToken: string, sessionUser: UserResponse): void {
     token.value = accessToken;
@@ -80,8 +88,8 @@ export const useAuthStore = defineStore("auth", () => {
   // Vue Router kicks off its initial navigation as soon as app.use(router)
   // runs, independently of main.ts awaiting fetchCurrentUser() - so on a
   // hard refresh the router guard could run before `user` is populated,
-  // making isAdmin false for a real admin. main.ts and the guard both await
-  // this same memoized promise so the guard sees the resolved profile.
+  // making canAccessAdmin false for a real admin. main.ts and the guard both
+  // await this same memoized promise so the guard sees the resolved profile.
   let bootstrapPromise: Promise<void> | null = null;
   function ensureBootstrapped(): Promise<void> {
     bootstrapPromise ??= fetchCurrentUser();
@@ -91,5 +99,17 @@ export const useAuthStore = defineStore("auth", () => {
   setUnauthorizedHandler(clearSession);
   setRefreshHandler(refreshAccessToken);
 
-  return { user, token, isAuthenticated, isAdmin, register, login, logout, fetchCurrentUser, ensureBootstrapped };
+  return {
+    user,
+    token,
+    isAuthenticated,
+    permissions,
+    hasPermission,
+    canAccessAdmin,
+    register,
+    login,
+    logout,
+    fetchCurrentUser,
+    ensureBootstrapped,
+  };
 });

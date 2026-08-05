@@ -81,6 +81,16 @@ public enum ErrorCode {
             "Refresh token không hợp lệ hoặc đã hết hạn",
             HttpStatus.UNAUTHORIZED
     ),
+    ACCOUNT_LOCKED(
+            "ACCOUNT_LOCKED",
+            "Tài khoản đã bị tạm khóa do đăng nhập sai quá nhiều lần, vui lòng thử lại sau",
+            HttpStatus.LOCKED
+    ),
+    RESET_TOKEN_INVALID(
+            "RESET_TOKEN_INVALID",
+            "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+            HttpStatus.BAD_REQUEST
+    ),
 
     // product-service
     PRODUCT_NOT_FOUND(
@@ -96,6 +106,36 @@ public enum ErrorCode {
     CATEGORY_HAS_PRODUCTS(
             "CATEGORY_HAS_PRODUCTS",
             "Không thể xoá danh mục đang có sản phẩm",
+            HttpStatus.CONFLICT
+    ),
+    BRAND_NOT_FOUND(
+            "BRAND_NOT_FOUND",
+            "Không tìm thấy thương hiệu",
+            HttpStatus.BAD_REQUEST
+    ),
+    ATTRIBUTE_NOT_FOUND(
+            "ATTRIBUTE_NOT_FOUND",
+            "Không tìm thấy thuộc tính",
+            HttpStatus.BAD_REQUEST
+    ),
+    ATTRIBUTE_VALUE_NOT_FOUND(
+            "ATTRIBUTE_VALUE_NOT_FOUND",
+            "Không tìm thấy giá trị thuộc tính",
+            HttpStatus.BAD_REQUEST
+    ),
+    VARIANT_NOT_FOUND(
+            "VARIANT_NOT_FOUND",
+            "Không tìm thấy biến thể sản phẩm",
+            HttpStatus.NOT_FOUND
+    ),
+    SKU_ALREADY_EXISTS(
+            "SKU_ALREADY_EXISTS",
+            "SKU đã tồn tại",
+            HttpStatus.CONFLICT
+    ),
+    INVENTORY_CONFLICT(
+            "INVENTORY_CONFLICT",
+            "Tồn kho vừa bị thay đổi bởi thao tác khác, vui lòng tải lại",
             HttpStatus.CONFLICT
     );
 

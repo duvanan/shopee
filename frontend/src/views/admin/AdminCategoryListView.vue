@@ -2,21 +2,36 @@
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
+import AdminPageHeader from "@/components/ui/AdminPageHeader.vue";
 import Button from "@/components/ui/Button.vue";
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import DataTable, { type DataTableColumn } from "@/components/ui/DataTable.vue";
+import Icon from "@/components/ui/Icon.vue";
 import { categoryApi } from "@/api/categoryApi";
 import { extractErrorMessage } from "@/api/http";
 import type { CategoryResponse } from "@/types/product";
+
+const columns: DataTableColumn[] = [
+  { key: "name", label: "Tên danh mục" },
+  { key: "code", label: "Mã" },
+  { key: "parent", label: "Danh mục cha" },
+  { key: "slug", label: "Slug" },
+];
 
 const categories = ref<CategoryResponse[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
 
+function parentName(category: CategoryResponse): string {
+  if (!category.parentId) return "—";
+  return categories.value.find((c) => c.id === category.parentId)?.name ?? "—";
+}
+
 async function fetchCategories() {
   isLoading.value = true;
   errorMessage.value = "";
   try {
-    categories.value = await categoryApi.list();
+    categories.value = await categoryApi.listAdmin();
   } catch {
     errorMessage.value = "Không tải được danh sách danh mục. Vui lòng thử lại.";
   } finally {
@@ -53,43 +68,32 @@ async function confirmDelete() {
 <template>
   <div>
     <div class="bg-white border border-neutral-200 rounded-xl overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-200 flex-wrap gap-3">
-        <div>
-          <h1 class="text-sm font-bold text-neutral-900">Danh mục</h1>
-          <p class="text-xs text-neutral-500 mt-0.5">{{ categories.length }} danh mục • không phân trang</p>
-        </div>
+      <AdminPageHeader title="Danh mục" :subtitle="`${categories.length} danh mục • không phân trang`">
         <RouterLink :to="{ name: 'admin-category-new' }">
-          <Button variant="primary">+ Thêm danh mục</Button>
+          <Button variant="primary"><Icon name="plus" class="w-4 h-4" /> Thêm danh mục</Button>
         </RouterLink>
-      </div>
+      </AdminPageHeader>
 
-      <div v-if="errorMessage" class="p-6 text-sm text-red-600">{{ errorMessage }}</div>
-      <div v-else-if="isLoading" class="p-6 text-sm text-neutral-400">Đang tải...</div>
-      <div v-else-if="categories.length === 0" class="p-10 text-center text-sm text-neutral-500">Chưa có danh mục nào.</div>
-
-      <table v-else class="w-full text-sm">
-        <thead>
-          <tr class="text-left text-[11px] uppercase tracking-wide text-neutral-400">
-            <th class="px-5 py-2.5 font-bold">Tên danh mục</th>
-            <th class="px-5 py-2.5 font-bold">Slug</th>
-            <th class="px-5 py-2.5"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="category in categories" :key="category.id" class="border-t border-neutral-100 hover:bg-neutral-50">
-            <td class="px-5 py-3 text-neutral-800">{{ category.name }}</td>
-            <td class="px-5 py-3 text-neutral-500">{{ category.slug ?? "—" }}</td>
-            <td class="px-5 py-3">
-              <div class="flex justify-end gap-2">
-                <RouterLink :to="{ name: 'admin-category-edit', params: { id: category.id } }">
-                  <Button variant="secondary">Sửa</Button>
-                </RouterLink>
-                <Button variant="danger" @click="askDelete(category)">Xoá</Button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <DataTable :columns="columns" :items="categories" :loading="isLoading" :error="errorMessage" empty-text="Chưa có danh mục nào." has-actions>
+        <template #cell-name="{ item }">
+          <span class="text-neutral-800">{{ item.name }}</span>
+        </template>
+        <template #cell-code="{ item }">
+          <span class="text-neutral-500 font-mono text-xs">{{ item.code }}</span>
+        </template>
+        <template #cell-parent="{ item }">
+          <span class="text-neutral-500">{{ parentName(item) }}</span>
+        </template>
+        <template #cell-slug="{ item }">
+          <span class="text-neutral-500">{{ item.slug ?? "—" }}</span>
+        </template>
+        <template #actions="{ item }">
+          <RouterLink :to="{ name: 'admin-category-edit', params: { id: item.id } }">
+            <Button variant="secondary"><Icon name="edit" class="w-3.5 h-3.5" /> Sửa</Button>
+          </RouterLink>
+          <Button variant="danger" @click="askDelete(item)"><Icon name="trash" class="w-3.5 h-3.5" /> Xoá</Button>
+        </template>
+      </DataTable>
     </div>
 
     <ConfirmDialog

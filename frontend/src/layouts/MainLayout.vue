@@ -22,7 +22,7 @@ function handleLogout() {
 
         <nav class="flex items-center gap-4 text-sm">
           <template v-if="auth.isAuthenticated">
-            <RouterLink v-if="auth.isAdmin" to="/admin" class="text-neutral-600 hover:text-neutral-900">Quản trị</RouterLink>
+            <RouterLink v-if="auth.canAccessAdmin" to="/admin" class="text-neutral-600 hover:text-neutral-900">Quản trị</RouterLink>
             <RouterLink to="/account" class="text-neutral-600 hover:text-neutral-900">{{ auth.user?.fullName ?? "Tài khoản" }}</RouterLink>
             <button type="button" class="text-neutral-500 hover:text-brand" @click="handleLogout">Đăng xuất</button>
           </template>

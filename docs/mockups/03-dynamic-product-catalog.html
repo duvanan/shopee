@@ -1,0 +1,314 @@
+<title>03 — Dynamic Product Catalog Wireframe</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --surface: #ffffff; --ink: #201d1a; --muted: #6f6a63; --faint: #a7a099;
+    --border: #ddd7cd; --accent: #ee4d2d; --accent-ink: #ffffff; --accent-soft: #fdece7;
+    --error: #c8372c; --error-soft: #fbeae8; --ok: #1a8a5f; --ok-soft: #e6f5ee;
+    --annot: #1f6f6b; --annot-soft: #e8f3f2; --skeleton: #ece8e1;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --bg: #18181a; --surface: #232325; --ink: #ece9e4; --muted: #9d978e; --faint: #6b665f;
+    --border: #38373a; --accent: #ff6a45; --accent-ink: #1a0d09; --accent-soft: #3a2019;
+    --error: #ff8577; --error-soft: #3a1e1b; --ok: #5fd6a5; --ok-soft: #123028;
+    --annot: #6bc9c3; --annot-soft: #163330; --skeleton: #2c2b2c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #18181a; --surface: #232325; --ink: #ece9e4; --muted: #9d978e; --faint: #6b665f;
+      --border: #38373a; --accent: #ff6a45; --accent-ink: #1a0d09; --accent-soft: #3a2019;
+      --error: #ff8577; --error-soft: #3a1e1b; --ok: #5fd6a5; --ok-soft: #123028;
+      --annot: #6bc9c3; --annot-soft: #163330; --skeleton: #2c2b2c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header.doc-head { display: flex; flex-direction: column; gap: 6px; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 26px; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .doc-head p { margin: 0; color: var(--muted); font-size: 14px; max-width: 70ch; }
+  .doc-head code { font-family: var(--mono); background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+
+  .tabs { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 28px; flex-wrap: wrap; }
+  .tab { font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--muted); background: transparent; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .section-title { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin: 32px 0 12px; }
+
+  /* --- Detail + variant picker --- */
+  .detail-layout { display: grid; grid-template-columns: minmax(240px, 360px) 1fr; gap: 32px; }
+  @media (max-width: 720px) { .detail-layout { grid-template-columns: 1fr; } }
+  .detail-image { aspect-ratio: 1; border-radius: 12px; background: linear-gradient(135deg, var(--skeleton), var(--border)); display: flex; align-items: center; justify-content: center; color: var(--faint); font-family: var(--mono); font-size: 12px; }
+  .breadcrumb { font-size: 12px; color: var(--faint); margin-bottom: 14px; }
+  .breadcrumb b { color: var(--muted); font-weight: 600; }
+  .detail-info h2 { font-size: 21px; margin: 0 0 8px; text-wrap: balance; }
+  .detail-price { font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .detail-price .range { font-size: 13px; color: var(--faint); font-weight: 500; }
+  .attr-group { margin: 18px 0; }
+  .attr-label { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .attr-label b { color: var(--ink); }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch { padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 13px; background: var(--surface); color: var(--ink); cursor: pointer; }
+  .swatch.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .swatch.disabled { color: var(--faint); text-decoration: line-through; opacity: 0.55; cursor: not-allowed; }
+  .detail-meta { display: flex; gap: 18px; font-size: 12.5px; color: var(--muted); margin: 14px 0 18px; }
+  .detail-meta b { color: var(--ink); }
+  .btn-add-cart { border: none; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 14px; padding: 12px 28px; cursor: pointer; }
+  .btn-add-cart.disabled { background: var(--faint); cursor: not-allowed; opacity: 0.7; }
+  .stock-badge { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 999px; margin-left: 10px; }
+  .stock-badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .stock-badge.out { background: var(--error-soft); color: var(--error); }
+
+  /* --- Wizard --- */
+  .stepper { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+  .step { flex: 1; min-width: 90px; text-align: center; padding: 8px 6px; border-radius: 8px; font-size: 11.5px; color: var(--faint); background: var(--surface); border: 1px solid var(--border); }
+  .step.done { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+  .step.current { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .step .n { font-family: var(--mono); display: block; font-size: 10px; opacity: 0.8; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .panel h3 { margin: 0 0 14px; font-size: 15px; }
+  .form-row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 13px; }
+  .form-row label { color: var(--muted); }
+  .form-input { border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; background: var(--bg); color: var(--faint); font-size: 13px; }
+
+  .attr-chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .attr-chip { border-radius: 999px; border: 1px solid var(--border); padding: 6px 14px; font-size: 12.5px; background: var(--surface); color: var(--muted); }
+  .attr-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .attr-chip .tag { font-family: var(--mono); font-size: 10px; margin-left: 6px; opacity: 0.7; }
+
+  table.variant-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+  table.variant-table th { text-align: left; color: var(--faint); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.variant-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--ink); }
+  table.variant-table .cell-input { border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; background: var(--bg); color: var(--faint); font-size: 12px; width: 90px; }
+  table.variant-table tr.error td { background: var(--error-soft); }
+  .row-error-msg { color: var(--error); font-size: 11px; margin-top: 3px; }
+
+  .wizard-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+  .btn { border-radius: 7px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  /* --- Inventory --- */
+  table.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.inv-table th { text-align: left; color: var(--faint); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px; border-bottom: 1px solid var(--border); }
+  table.inv-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
+  .btn-import { border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+  .conflict-banner { background: var(--error-soft); color: var(--error); border-radius: 8px; padding: 12px 16px; font-size: 12.5px; margin-top: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .annotations { margin-top: 28px; }
+  .annotations h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 14px; font-family: var(--mono); }
+  .annot-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .annot-list li { display: flex; gap: 10px; align-items: flex-start; background: var(--annot-soft); border-radius: 8px; padding: 10px 12px; }
+  .annot-list .num { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--annot); color: var(--bg); font-family: var(--mono); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .annot-list .txt { font-size: 13px; line-height: 1.45; }
+  .annot-list .txt b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .annot-list .txt span { color: var(--muted); font-size: 12.5px; }
+
+  footer.doc-foot { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--faint); font-family: var(--mono); }
+</style>
+
+<div class="page">
+  <header class="doc-head">
+    <span class="kicker">Shopee Clone · BA Wireframe</span>
+    <h1>03 — Product Catalog Động</h1>
+    <p>Wireframe low-fidelity cho 3 màn hình trong <code>docs/features/03-dynamic-product-catalog.md</code>: chi tiết sản phẩm (chọn variant), wizard admin tạo sản phẩm động, và quản lý tồn kho.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Chọn màn hình">
+    <button class="tab" role="tab" aria-selected="true" data-target="detail">Chi tiết sản phẩm (variant)</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="wizard">Admin — Tạo sản phẩm</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="inventory">Admin — Tồn kho</button>
+  </div>
+
+  <!-- DETAIL WITH VARIANT PICKER -->
+  <section class="screen active" id="screen-detail">
+    <div class="breadcrumb">Trang chủ / Thời trang nam / <b>Áo thun nam Basic</b></div>
+    <div class="detail-layout">
+      <div class="detail-image">variant image</div>
+      <div class="detail-info">
+        <h2>Áo thun nam Basic</h2>
+        <div class="detail-price">199.000₫ <span class="range">(niêm yết 250.000₫)</span></div>
+
+        <div class="attr-group">
+          <div class="attr-label">Màu sắc: <b>Đen</b></div>
+          <div class="swatches">
+            <span class="swatch selected">Đen</span>
+            <span class="swatch">Trắng</span>
+          </div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Kích thước: <b>M</b></div>
+          <div class="swatches">
+            <span class="swatch selected">M</span>
+            <span class="swatch">L</span>
+            <span class="swatch disabled">XL <span class="mark">1</span></span>
+          </div>
+        </div>
+
+        <div class="detail-meta">
+          <span>SKU: <b>TSHIRT-001-BLACK-M</b></span>
+          <span>Còn lại: <b>100</b><span class="stock-badge ok">còn hàng</span></span>
+        </div>
+        <button class="btn-add-cart">Thêm vào giỏ</button>
+      </div>
+    </div>
+
+    <div class="section-title">Trạng thái hết hàng — mọi variant đều OUT_OF_STOCK</div>
+    <div class="detail-layout">
+      <div class="detail-image">variant image</div>
+      <div class="detail-info">
+        <h2>Áo khoác gió nam</h2>
+        <div class="detail-price">450.000₫</div>
+        <div class="detail-meta"><span>Còn lại: <b>0</b><span class="stock-badge out">hết hàng</span></span></div>
+        <button class="btn-add-cart disabled" disabled>Hết hàng</button>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <h3>Ghi chú trạng thái</h3>
+      <ul class="annot-list">
+        <li><span class="num">1</span><span class="txt"><b>Swatch "XL" bị gạch — disabled</b><span>Tổ hợp Đen+XL chưa có variant tương ứng trong DB. Client tự tính dựa trên danh sách variant trả về, không gọi lại API khi đổi lựa chọn.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ADMIN WIZARD -->
+  <section class="screen" id="screen-wizard">
+    <div class="stepper">
+      <div class="step done">1<span class="n">Thông tin chung</span></div>
+      <div class="step done">2<span class="n">Chọn attribute</span></div>
+      <div class="step done">3<span class="n">Attr tạo variant</span></div>
+      <div class="step done">4<span class="n">Giá trị attribute</span></div>
+      <div class="step current">5<span class="n">Tổ hợp variant</span></div>
+      <div class="step">6<span class="n">SKU/Giá/Tồn kho</span></div>
+      <div class="step">7<span class="n">Attr mô tả</span></div>
+      <div class="step">8<span class="n">Preview</span></div>
+      <div class="step">9<span class="n">Lưu/Xuất bản</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>Bước 5 — Tổ hợp variant tự sinh (preview client-side)</h3>
+      <div class="attr-chip-row">
+        <span class="attr-chip on">Màu sắc <span class="tag">tạo variant</span></span>
+        <span class="attr-chip on">Kích thước <span class="tag">tạo variant</span></span>
+        <span class="attr-chip">Chất liệu <span class="tag">mô tả chung</span></span>
+      </div>
+
+      <table class="variant-table">
+        <thead>
+          <tr><th>Tổ hợp</th><th>SKU</th><th>Giá niêm yết</th><th>Giá bán</th><th>Tồn kho ban đầu</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Đen / M</td>
+            <td><input class="cell-input" value="TSHIRT-001-BLACK-M" /></td>
+            <td><input class="cell-input" value="250000" /></td>
+            <td><input class="cell-input" value="199000" /></td>
+            <td><input class="cell-input" value="100" /></td>
+            <td>✓</td>
+          </tr>
+          <tr>
+            <td>Đen / L</td>
+            <td><input class="cell-input" value="TSHIRT-001-BLACK-L" /></td>
+            <td><input class="cell-input" value="250000" /></td>
+            <td><input class="cell-input" value="199000" /></td>
+            <td><input class="cell-input" value="80" /></td>
+            <td>✓</td>
+          </tr>
+          <tr class="error">
+            <td>Trắng / M</td>
+            <td><input class="cell-input" value="TSHIRT-001-BLACK-M" /></td>
+            <td><input class="cell-input" value="250000" /></td>
+            <td><input class="cell-input" value="199000" /></td>
+            <td><input class="cell-input" value="60" /></td>
+            <td>⚠<span class="mark">2</span></td>
+          </tr>
+          <tr>
+            <td>Trắng / L</td>
+            <td><input class="cell-input" value="TSHIRT-001-WHITE-L" /></td>
+            <td><input class="cell-input" value="250000" /></td>
+            <td><input class="cell-input" value="199000" /></td>
+            <td><input class="cell-input" value="0" /></td>
+            <td>✓</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="row-error-msg">Dòng "Trắng / M": SKU trùng với dòng "Đen / M" — sửa trước khi qua bước tiếp theo.</div>
+
+      <div class="wizard-actions">
+        <button class="btn">← Quay lại</button>
+        <button class="btn primary">Tiếp tục →</button>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <h3>Ghi chú trạng thái</h3>
+      <ul class="annot-list">
+        <li><span class="num">1</span><span class="txt"><b>4 tổ hợp = 2 màu × 2 size</b><span>Sinh tự động (cartesian product) từ giá trị đã chọn ở bước 4, chưa gọi API — chỉ tính toán ở client.</span></span></li>
+        <li><span class="num">2</span><span class="txt"><b>Cảnh báo SKU trùng ngay khi nhập</b><span>Validate client-side tức thời (trùng trong chính request này); validate trùng với DB (SKU của sản phẩm khác) chỉ biết được khi submit bước 8, hiện lỗi theo đúng dòng.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ADMIN INVENTORY -->
+  <section class="screen" id="screen-inventory">
+    <div class="panel">
+      <h3>Tồn kho — Áo thun nam Basic</h3>
+      <table class="inv-table">
+        <thead>
+          <tr><th>Variant</th><th>SKU</th><th>Kho</th><th>Tồn khả dụng</th><th>Đang giữ</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Đen / M</td><td>TSHIRT-001-BLACK-M</td><td>Kho mặc định</td>
+            <td>100</td><td>5</td>
+            <td><button class="btn-import">+ Nhập kho</button></td>
+          </tr>
+          <tr>
+            <td>Đen / L</td><td>TSHIRT-001-BLACK-L</td><td>Kho mặc định</td>
+            <td>80</td><td>0</td>
+            <td><button class="btn-import">+ Nhập kho</button></td>
+          </tr>
+          <tr>
+            <td>Trắng / L</td><td>TSHIRT-001-WHITE-L</td><td>Kho mặc định</td>
+            <td>0</td><td>0</td>
+            <td><button class="btn-import">+ Nhập kho</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="conflict-banner">
+        <span class="mark">1</span>
+        ⚠ Xung đột cập nhật: tồn kho variant "Đen / M" đã bị người khác thay đổi. Vui lòng tải lại trước khi nhập tiếp.
+      </div>
+    </div>
+
+    <div class="annotations">
+      <h3>Ghi chú trạng thái</h3>
+      <ul class="annot-list">
+        <li><span class="num">1</span><span class="txt"><b>Banner conflict (409)</b><span>Xuất hiện khi optimistic locking (`version`) phát hiện 2 admin sửa đồng thời — chặn ghi đè âm thầm, yêu cầu tải lại số liệu mới nhất.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="doc-foot">docs/mockups/03-dynamic-product-catalog.html · tham chiếu bởi docs/features/03-dynamic-product-catalog.md §10</footer>
+</div>
+
+<script>
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      tab.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+      document.getElementById("screen-" + tab.dataset.target).classList.add("active");
+    });
+  });
+</script>

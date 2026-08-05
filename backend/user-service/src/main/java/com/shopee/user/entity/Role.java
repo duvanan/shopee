@@ -30,5 +30,13 @@ public class Role extends Auditable {
     @Column(nullable = false, unique = true)
     private String code;
 
+    @Column(nullable = false)
+    private String name;
+
     private String description;
+
+    /** Role he thong (CUSTOMER/ADMIN) - danh dau de sau nay chan xoa cung o API quan ly role. */
+    @Column(name = "is_system", nullable = false)
+    @Builder.Default
+    private boolean isSystem = false;
 }

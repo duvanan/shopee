@@ -5,6 +5,7 @@ import { useRoute, useRouter } from "vue-router";
 import Button from "@/components/ui/Button.vue";
 import { categoryApi } from "@/api/categoryApi";
 import { extractErrorMessage } from "@/api/http";
+import type { CategoryResponse } from "@/types/product";
 
 const route = useRoute();
 const router = useRouter();
@@ -16,44 +17,61 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 const fieldErrors = reactive<Record<string, string>>({});
+const allCategories = ref<CategoryResponse[]>([]);
 
 const form = reactive({
+  code: "",
   name: "",
   slug: "",
+  parentId: "",
+  description: "",
 });
 
 function validate(): boolean {
+  fieldErrors.code = form.code.trim() ? "" : "Vui lòng nhập mã danh mục";
   fieldErrors.name = form.name.trim() ? "" : "Vui lòng nhập tên danh mục";
-  return !fieldErrors.name;
+  fieldErrors.slug = form.slug.trim() ? "" : "Vui lòng nhập slug";
+  return !fieldErrors.code && !fieldErrors.name && !fieldErrors.slug;
 }
 
-async function loadCategory() {
-  if (!categoryId.value) return;
+async function loadCategories() {
   isLoading.value = true;
   try {
-    // Backend chua co GET /api/categories/{id} - tim trong list day du.
-    const categories = await categoryApi.list();
-    const category = categories.find((item) => item.id === categoryId.value);
-    if (!category) {
-      errorMessage.value = "Không tìm thấy danh mục này.";
-      return;
+    allCategories.value = await categoryApi.listAdmin();
+    if (categoryId.value) {
+      const category = allCategories.value.find((item) => item.id === categoryId.value);
+      if (!category) {
+        errorMessage.value = "Không tìm thấy danh mục này.";
+        return;
+      }
+      form.code = category.code;
+      form.name = category.name;
+      form.slug = category.slug;
+      form.parentId = category.parentId ?? "";
+      form.description = category.description ?? "";
     }
-    form.name = category.name;
-    form.slug = category.slug ?? "";
   } catch {
-    errorMessage.value = "Không tải được thông tin danh mục.";
+    errorMessage.value = "Không tải được danh sách danh mục.";
   } finally {
     isLoading.value = false;
   }
 }
 
-onMounted(loadCategory);
+onMounted(loadCategories);
+
+const selectableParents = computed(() => allCategories.value.filter((c) => c.id !== categoryId.value));
 
 async function handleSubmit() {
   errorMessage.value = "";
   if (!validate()) return;
 
-  const payload = { name: form.name.trim(), slug: form.slug.trim() || null };
+  const payload = {
+    code: form.code.trim(),
+    name: form.name.trim(),
+    slug: form.slug.trim(),
+    parentId: form.parentId || null,
+    description: form.description.trim() || null,
+  };
 
   isSubmitting.value = true;
   try {
@@ -91,6 +109,18 @@ async function handleSubmit() {
         </div>
 
         <div>
+          <label class="block text-xs font-semibold text-neutral-600 mb-1.5">Mã danh mục</label>
+          <input
+            v-model="form.code"
+            type="text"
+            placeholder="VD: PHU-KIEN-DIEN-THOAI"
+            class="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+            :class="fieldErrors.code ? 'border-red-400' : 'border-neutral-300'"
+          />
+          <p v-if="fieldErrors.code" class="text-xs text-red-600 mt-1">{{ fieldErrors.code }}</p>
+        </div>
+
+        <div>
           <label class="block text-xs font-semibold text-neutral-600 mb-1.5">Tên danh mục</label>
           <input
             v-model="form.name"
@@ -108,9 +138,30 @@ async function handleSubmit() {
             v-model="form.slug"
             type="text"
             placeholder="vd-phu-kien-dien-thoai"
-            class="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+            class="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+            :class="fieldErrors.slug ? 'border-red-400' : 'border-neutral-300'"
           />
-          <p class="text-xs text-neutral-400 mt-1">Dùng trong đường dẫn URL, chỉ chữ thường và dấu gạch ngang</p>
+          <p v-if="fieldErrors.slug" class="text-xs text-red-600 mt-1">{{ fieldErrors.slug }}</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 mb-1.5">Danh mục cha</label>
+          <select
+            v-model="form.parentId"
+            class="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+          >
+            <option value="">— Danh mục gốc —</option>
+            <option v-for="category in selectableParents" :key="category.id" :value="category.id">{{ category.name }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 mb-1.5">Mô tả</label>
+          <textarea
+            v-model="form.description"
+            rows="3"
+            class="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+          ></textarea>
         </div>
 
         <div class="flex gap-2 pt-2">

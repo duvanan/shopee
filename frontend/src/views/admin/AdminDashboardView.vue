@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { productApi } from "@/api/productApi";
+import { categoryApi } from "@/api/categoryApi";
 
 const totalProducts = ref<number | null>(null);
 const totalCategories = ref<number | null>(null);
 
 onMounted(async () => {
   const [products, categories] = await Promise.all([
-    productApi.list({ size: 1 }),
-    productApi.listCategories(),
+    productApi.listAdmin({ size: 1 }),
+    categoryApi.listAdmin(),
   ]);
   totalProducts.value = products.totalElements;
   totalCategories.value = categories.length;
