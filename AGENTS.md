@@ -38,17 +38,25 @@ Instructions for Codex or other coding agents working on this repository.
 **Start each task by referencing its Feature ID (e.g. CART-02) and URL.**
 
 
-## Multi-Agent orchestration (project-scoped custom Codex agents)
-- See `docs/project-management/MULTI_AGENT.md` and `.codex/agents/*.toml` for role definitions.
-- The **main agent is coordinator**. Do not behave as a single agent doing all specialist work on complicated, cross-service tasks. Delegate suitably scoped analysis to `planner`, `architect`, `qa`, or `security`, and implementation to `backend`, `frontend`, or `devops`.
-- Before delegation decide file ownership, dependencies, expected output and acceptance evidence. Parallelize independent reviews; **never parallel-edit the same file**.
-- On routine changes spawn only required agents; max 3 concurrent subagents is configured in `.codex/config.toml` to control cost and merge conflicts.
-- On BASE-01 prefer `architect` + `qa` + `security` for independent read-only audit. On Cart/Order code prefer design → backend/frontend execution → independent QA/Security review. For Kafka/ELK use architect → devops → QA.
-- Subagents are on-demand and do not run automatically from their TOML definitions. If delegation is unavailable, explain the limitation and follow the same role-based checklists sequentially.
+## ChatGPT → Codex handoff (primary workflow)
+- For business features, the **user and ChatGPT** collaboratively draft BA requirements with `.agents/skills/ecommerce-domain/SKILL.md` and, when changing a UI, UX requirements with `.agents/skills/ui-ux-design/SKILL.md`.
+- The **user explicitly approves** both specs before affected implementation starts. Templates are at `docs/project-management/templates/BA_SPEC.md` and `UX_SPEC.md`; canonical approved documents belong under `docs/features/<FEATURE-ID>/BA_SPEC.md` and `UX_SPEC.md`. See `docs/project-management/SPEC_HANDOFF.md`.
+- For an Issue that implements part of a larger feature, reuse and link its approved parent-feature specs rather than creating duplicates. UI-free backend tasks do not need a UX Spec; security/infra/CI maintenance may require neither.
+- The Codex Coordinator **must read and validate approved specs and the Issue before delegating Architect/Backend/Frontend**. A document is approved only if explicitly approved by the user and the approval evidence is recorded. Do not treat a Draft, a template or an agent's guess as approval.
+- If approved BR-xx / AC-xx / UX-xx conflict, scope is missing, or required specifications are absent, flag the blocker and ask for a decision; do not improvise or silently expand business scope.
+- The Codex custom agents `business-analyst` and `ui-ux` remain available **only on explicit request** for read-only requirement-compliance reviews or gap checks. **Do not spawn them by default** and do not perform a new discovery round when an approved spec already exists.
 
-## Project-local reusable Skills
-- Skill catalog: `docs/project-management/SKILLS.md`; manifests: `.agents/skills/{microservice-design,spring-boot-development,vue-development,security-review,testing-strategy,infrastructure}/SKILL.md`.
-- Load a matching Skill only when the assigned Issue actually calls for that workflow; Skills are **shared procedures**, not one Skill per agent and not always-on processes.
-- Use `microservice-design` before implementation involving new services or distributed consistency, `testing-strategy` when preparing acceptance evidence, and `security-review` for auth/RBAC/ownership sensitive changes.
-- Backend/frontend/DevOps agents should consult their respective implementation Skill, then produce the documented output and test evidence. The coordinator remains responsible for reviewing combined changes.
-- **Skill presence does not prove execution**. Report what was actually checked, tested and delegated.
+## Multi-Agent engineering orchestration
+- See `docs/project-management/MULTI_AGENT.md` and `.codex/agents/*.toml` for role definitions. The main Codex agent is Coordinator and custom agents are on-demand.
+- **Primary delivery path:** user-approved BA Spec + UX Spec (if UI) → `architect` Technical Design → `backend` and/or `frontend` → `qa` + `security` → PR → user review.
+- Use `planner` for estimates or sprint/dependency risks and `devops` for infrastructure. Pure security audits (e.g. BASE-01) can use `architect`, `qa`, `security` directly.
+- Before delegation define file ownership, dependencies, expected outputs and test evidence. Parallelize independent reviews; **never parallel-edit the same file**. Do not spawn every agent for routine tasks.
+- The `.codex/config.toml` declares a three-subagent concurrency setting; local Codex version/support must be verified at runtime.
+- Subagents are not always-running. If delegation is unavailable, explain and apply the same checks sequentially.
+
+## Project Skills
+- Catalog: `docs/project-management/SKILLS.md`; manifests under `.agents/skills/`.
+- `ecommerce-domain` and `ui-ux-design` are primarily used during **ChatGPT + user discovery/design** and optionally for a requested compliance review in Codex.
+- `microservice-design`, `spring-boot-development`, `vue-development`, `testing-strategy`, `security-review`, `infrastructure` support delivery tasks, loaded only as relevant.
+- Architect derives technical contracts from approved requirements. Frontend implements approved UI interactions and states. QA maps actual evidence to AC-xx, BR-xx and UX-xx; Security reviews trust boundaries and ownership.
+- Skill presence never proves execution, review, test pass or user approval. Report actual evidence honestly.

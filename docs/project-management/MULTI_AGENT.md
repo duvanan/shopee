@@ -1,66 +1,83 @@
-# Multi-Agent workflow for Shopee Clone (Codex)
+# Multi-Agent Engineering Workflow — Shopee Clone
 
-> Added for the local Codex app / CLI / IDE. Files in `.codex/agents/` are **custom agent definitions**, not always-running processes. Actual subagent spawning depends on the Codex session and explicit delegation. Root `AGENTS.md` remains the shared repository policy.
+This repository contains **nine optional Codex specialist definitions** and **eight reusable Skills**. The user and ChatGPT are the **product discovery / UX authority**; Codex is the **engineering delivery system**.
 
-## Participants
+Read `AGENTS.md`, `docs/project-management/WORKFLOW.md` and `docs/project-management/SPEC_HANDOFF.md` before implementing a feature.
 
-| Role | Agent name | Responsibility | Editing policy |
-| --- | --- | --- | --- |
-| Coordinator | Main Codex session | Read Issue, decide delegation, merge findings, ask user to review PR | Own integration |
-| Planning | `planner` | Scope/estimate, deadline, dependencies and sprint risks | Analysis only |
-| Architecture | `architect` | API/DB boundaries, consistency, technical design | Analysis by default |
-| Backend | `backend` | Spring Boot service implementation and backend tests | Assigned files only |
-| Frontend | `frontend` | Vue/Pinia/UI/API integration | Assigned files only |
-| QA | `qa` | Independent test matrix, test execution and evidence | Analysis by default |
-| Security | `security` | JWT/RBAC/Gateway/IDOR/trust-boundary review | Analysis by default |
-| DevOps | `devops` | Compose, CI, Kafka, ELK, health and recovery | Assigned files only |
+## Default flow
 
-## Delegation policy
-1. Main agent reads the GitHub Issue and `WORKFLOW.md`; calls `planner` when scope, estimate or deadline is uncertain.
-2. For service/data/API changes, delegate architecture to `architect` before coding.
-3. Implementers `backend`, `frontend`, `devops` work only on independently owned files; prefer sequential execution if their files overlap.
-4. `qa` and `security` review independently of implementation; they report evidence and blockers.
-5. Coordinator synthesizes results, checks DoD, creates PR and **waits for human approval** before merge/Done.
-6. Do not spawn all roles on every Issue. For simple docs issues, coordinator alone is sufficient; complex changes use 2–3 suitable subagents.
-7. Treat concurrency as 3 max here; independent exploratory reviews may run in parallel, conflicting writes must be sequential.
-
-## Typical flows
-
-### Feature: CART-02
-`Coordinator → architect (Redis/API + service boundaries) → backend (Cart APIs) → qa + security (review/test) → PR → human review`.
-For CART-04 add `frontend` after API contract is stable.
-
-### Feature: OPS-01
-`Coordinator → architect (replication/failover design) → devops (3-node KRaft) → qa (fault test evidence) → PR`.
-
-### Baseline: BASE-01
-`Coordinator → (qa, security, architect) in parallel read-only → consolidate issue findings → PR/docs`.
-
-## Start task prompt (send in Codex)
 ```text
-Hãy thực hiện Issue #1 (BASE-01) trong duvanan/shopee theo AGENTS.md và WORKFLOW.md.
-Dùng custom subagents qa, security, architect để audit độc lập theo phạm vi.
-Main agent tổng hợp, đưa ra test matrix và tạo branch/PR phù hợp; không merge, không đóng Issue nếu chưa được tôi review.
+User + ChatGPT
+  |-- ecommerce-domain → BA_SPEC.md (business rules and AC)
+  |-- ui-ux-design → UX_SPEC.md (UI flows and UX AC, when needed)
+  |-- explicit human approval of specs
+  v
+Codex Coordinator (read Issue + approved specs)
+  v
+Architect (TECHNICAL_DESIGN.md: APIs/data/consistency/security)
+  v
+Backend / Frontend (assigned files only; coordinate API contracts)
+  v
+QA + Security (test evidence / independent review)
+  v
+Pull Request → User review → User-authorized merge
 ```
 
-## Verify after merging the workflow PR
-- Pull latest `main`; restart Codex session to refresh project AGENTS/config instructions.
-- Check `.codex/config.toml` and `.codex/agents/{role}.toml` are present.
-- Ask explicitly for subagent delegation; inspect active threads (CLI `/subagents` when supported).
-- If custom agents do not appear, verify Codex version, trusted-project config and current agent availability.
-- A TOML file by itself does **not** launch an autonomous always-on agent; local project rules are not a scheduler.
+The Coordinator must **not** automatically run fresh BA/UI-UX discovery for every Issue. An approved parent-feature spec may cover multiple implementation Issues.
 
-References: https://learn.chatgpt.com/docs/agent-configuration/subagents and https://learn.chatgpt.com/docs/config-file/config-reference
+## Agent responsibilities
 
-## Shared Skills
-The seven custom agent roles reuse six instruction-only project Skills located under `.agents/skills/`. See `docs/project-management/SKILLS.md` for the complete role-to-Skill matrix, invocation examples and runtime verification checklist.
+| Custom agent | Default role | Default on business feature? |
+| --- | --- | --- |
+| `planner` | Scope/dependency/estimate/sprint risk using approved requirements | Only if planning needed |
+| `architect` | Technical Design, API/service boundaries, reliability/security | **Yes**, for architecture-impacting changes |
+| `backend` | Implement scoped Spring Boot APIs, migrations and tests | When backend changes |
+| `frontend` | Implement approved UX Spec with Vue/TypeScript/Pinia | When frontend changes |
+| `qa` | Review AC/UX-xx coverage; execute/report tests and defects | For changed behavior |
+| `security` | Review authorization, session, spoofing, IDOR, secrets | For security-sensitive changes |
+| `devops` | Compose, CI, Kafka, ELK and recovery tasks | When infrastructure changes |
+| `business-analyst` | **Optional read-only review** of implementation vs approved BA Spec (not default author of requirements) | **No**, unless user requests |
+| `ui-ux` | **Optional read-only UX compliance review** vs approved UX Spec (not default discovery) | **No**, unless user requests |
 
-- `architect` → `microservice-design` (+ `security-review` if trust-sensitive).
-- `backend` → `spring-boot-development` (+ design and testing when needed).
-- `frontend` → `vue-development` (+ `testing-strategy`).
-- `qa` → `testing-strategy`.
-- `security` → `security-review`.
-- `devops` → `infrastructure` (+ design/testing when needed).
-- `planner` → existing `WORKFLOW.md` / `ROADMAP_2026_2027.md`; no custom Skill required.
+The **main Codex session** is Coordinator, not an additional custom TOML role. Existing concurrency is configured as three subagents; the coordinator selects only relevant agents, never all nine at once.
 
-A Skill never launches an agent by itself. Coordinator chooses subagents and each specialist loads only matching Skills as needed.
+## Required preflight (Coordinator)
+
+1. Resolve `<FEATURE-ID>` and GitHub Issue, scope, dependencies, acceptance criteria.
+2. For business behavior, locate `docs/features/<FEATURE-ID>/BA_SPEC.md` or an explicit approved parent spec link. For customer/admin UI changes locate `UX_SPEC.md`; if UI does not change mark UX N/A.
+3. Read **approval status and evidence**. A template, draft or undocumented assertion of approval is insufficient. If required specs are missing or inconsistent, stop affected implementation and ask the user. Do not fabricate approval.
+4. Ask `architect` for `docs/features/<FEATURE-ID>/TECHNICAL_DESIGN.md` when design is needed. Technical design must trace back to BA/UX AC and flag conflicts rather than overwrite them.
+5. Delegate only appropriate implementation and reviewers. QA maps tests to `BR-xx`, `AC-xx`, `UX-xx`; Security checks relevant risks; report commands/results and unresolved gaps.
+6. Create a PR and request human review. Never auto-merge, auto-close or silently extend sprint scope.
+
+## Optional BA and UI/UX review agents
+
+Use **only when specifically requested by the user**, such as:
+- `business-analyst` + `ecommerce-domain`: check an existing implementation/Issue for deviations from approved business rules; produce a gap report, **no new policy**.
+- `ui-ux` + `ui-ux-design`: inspect frontend for differences from approved user flows, states, responsiveness/accessibility criteria; produce a gap report, **no new visual mandate**.
+
+If user explicitly requests fresh discovery *inside Codex*, BA/UI-UX agents may draft proposals, but may not claim user approval. The default remains **ChatGPT + user** discovery/design.
+
+## Examples
+
+- **BASE-01 technical/security audit:** Coordinator → architect + qa + security in parallel (read-only). Neither BA nor UI/UX is required.
+- **CART-01:** user + ChatGPT draft BA Spec and UX Spec for cart → user approves → Codex architect designs Redis/API and dependencies.
+- **CART-02:** Coordinator checks approved CART-01 BA Spec → architect only if design is unresolved → backend → qa/security → PR.
+- **CART-04:** Coordinator checks approved CART-01 BA + UX Specs → frontend → qa/security → PR.
+- **OPS-01:** Coordinator → architect → devops + qa for Kafka; BA/UX not required.
+
+## Starter prompt for VS Code Codex
+
+```text
+Implement Issue CART-02 according to approved BA/UX specs in
+docs/features/CART-01/ (reuse the parent feature specs).
+Do not spawn business-analyst or ui-ux for new discovery by default.
+First verify Status: Approved and record of my explicit approval.
+Delegate Architect for Technical Design as necessary, Backend for implementation,
+then QA and Security for review. Stop and raise blocking spec conflicts;
+do not invent new business rules, close the Issue or merge PR.
+```
+
+## Verify locally
+
+Pull the latest workflow branch, restart the Codex session, check `.codex/agents/`, `.agents/skills/` and the spec templates. Custom-agent/Skill files alone do not launch a process or prove a review occurred.
