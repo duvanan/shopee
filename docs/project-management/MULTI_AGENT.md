@@ -51,3 +51,16 @@ Main agent tổng hợp, đưa ra test matrix và tạo branch/PR phù hợp; kh
 - A TOML file by itself does **not** launch an autonomous always-on agent; local project rules are not a scheduler.
 
 References: https://learn.chatgpt.com/docs/agent-configuration/subagents and https://learn.chatgpt.com/docs/config-file/config-reference
+
+## Shared Skills
+The seven custom agent roles reuse six instruction-only project Skills located under `.agents/skills/`. See `docs/project-management/SKILLS.md` for the complete role-to-Skill matrix, invocation examples and runtime verification checklist.
+
+- `architect` → `microservice-design` (+ `security-review` if trust-sensitive).
+- `backend` → `spring-boot-development` (+ design and testing when needed).
+- `frontend` → `vue-development` (+ `testing-strategy`).
+- `qa` → `testing-strategy`.
+- `security` → `security-review`.
+- `devops` → `infrastructure` (+ design/testing when needed).
+- `planner` → existing `WORKFLOW.md` / `ROADMAP_2026_2027.md`; no custom Skill required.
+
+A Skill never launches an agent by itself. Coordinator chooses subagents and each specialist loads only matching Skills as needed.
