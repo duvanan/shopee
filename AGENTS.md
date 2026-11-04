@@ -45,3 +45,10 @@ Instructions for Codex or other coding agents working on this repository.
 - On routine changes spawn only required agents; max 3 concurrent subagents is configured in `.codex/config.toml` to control cost and merge conflicts.
 - On BASE-01 prefer `architect` + `qa` + `security` for independent read-only audit. On Cart/Order code prefer design → backend/frontend execution → independent QA/Security review. For Kafka/ELK use architect → devops → QA.
 - Subagents are on-demand and do not run automatically from their TOML definitions. If delegation is unavailable, explain the limitation and follow the same role-based checklists sequentially.
+
+## Project-local reusable Skills
+- Skill catalog: `docs/project-management/SKILLS.md`; manifests: `.agents/skills/{microservice-design,spring-boot-development,vue-development,security-review,testing-strategy,infrastructure}/SKILL.md`.
+- Load a matching Skill only when the assigned Issue actually calls for that workflow; Skills are **shared procedures**, not one Skill per agent and not always-on processes.
+- Use `microservice-design` before implementation involving new services or distributed consistency, `testing-strategy` when preparing acceptance evidence, and `security-review` for auth/RBAC/ownership sensitive changes.
+- Backend/frontend/DevOps agents should consult their respective implementation Skill, then produce the documented output and test evidence. The coordinator remains responsible for reviewing combined changes.
+- **Skill presence does not prove execution**. Report what was actually checked, tested and delegated.
