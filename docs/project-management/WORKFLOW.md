@@ -18,8 +18,16 @@ Backlog → Ready → In Progress → In Review → Testing → Done.
 - **Done**: mọi AC và DoD đạt, PR merge vào main, issue đóng.
 - **Blocked**: dùng trường/nhãn riêng trong Project; ghi lý do, next action và ngày kiểm tra lại; báo rủi ro nếu quá 1 ngày làm việc.
 
+## Business Analysis gate (business-facing features)
+For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promotion Issues:
+1. Coordinator delegates `business-analyst` and the `ecommerce-domain` Skill to define actors, user journey, business rules (BR-xx), scope, edge cases and measurable AC.
+2. BA clearly separates implemented behavior, approved rules, proposals and blocking questions; decisions with business impact require user approval.
+3. Architect designs APIs, state transitions and reliability using the **approved** BA specification; Planner checks estimate/capacity; QA derives test cases from AC.
+4. This gate is not required for pure CI/ELK/infra changes or urgent security fixes without a business-policy decision.
+
 ## Mỗi task: Definition of Ready (DoR)
 - [ ] Phạm vi rõ, có Non-goals.
+- [ ] Nếu là feature nghiệp vụ: có BA spec với Business Rules, actors, user journeys, AC và không còn quyết định nghiệp vụ blocking chưa được duyệt.
 - [ ] Có Acceptance Criteria kiểm chứng được.
 - [ ] API contract / DB / Redis/Kafka message nếu liên quan.
 - [ ] Dependency được gắn hoặc liệt kê; không vượt quá 8–10 giờ nếu có thể chia nhỏ.
@@ -27,7 +35,7 @@ Backlog → Ready → In Progress → In Review → Testing → Done.
 
 ## Phát triển theo GitHub Flow
 1. Chọn Issue ở Ready, kiểm tra prerequisite và capacity sprint.
-2. Xác nhận Technical Design (có thể đính kèm markdown vào Issue).
+2. Với feature nghiệp vụ, xác nhận BA spec / business decisions trước; sau đó xác nhận Technical Design (có thể đính kèm markdown vào Issue).
 3. Tạo branch `feature/<ISSUE-ID>-slug`, `fix/<ISSUE-ID>-slug` hoặc `chore/<ISSUE-ID>-slug` từ `main`.
 4. Implement theo từng lát nhỏ; backend + frontend + tests cùng một AC.
 5. Chạy `mvn -B -ntp verify -f backend/pom.xml` và `cd frontend && npm ci && npm run build`.
