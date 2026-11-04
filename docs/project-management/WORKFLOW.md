@@ -22,12 +22,14 @@ Backlog → Ready → In Progress → In Review → Testing → Done.
 For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promotion Issues:
 1. Coordinator delegates `business-analyst` and the `ecommerce-domain` Skill to define actors, user journey, business rules (BR-xx), scope, edge cases and measurable AC.
 2. BA clearly separates implemented behavior, approved rules, proposals and blocking questions; decisions with business impact require user approval.
-3. Architect designs APIs, state transitions and reliability using the **approved** BA specification; Planner checks estimate/capacity; QA derives test cases from AC.
-4. This gate is not required for pure CI/ELK/infra changes or urgent security fixes without a business-policy decision.
+3. For changes to customer/admin screens, Coordinator delegates `ui-ux` using `ui-ux-design` to define user flows, wireframes (when useful), interaction/states, responsive and accessibility checks. UX proposals needing product-policy choices go back to BA/user for approval.
+4. Architect designs APIs, state transitions and reliability using the **approved** BA specification and coordinates any UX-driven contract needs; Planner checks estimate/capacity; QA derives tests from both BA and UX AC.
+5. Business Analysis/UI-UX gates are not required for pure CI/ELK/infra changes or urgent security fixes with no user-visible or policy impact.
 
 ## Mỗi task: Definition of Ready (DoR)
 - [ ] Phạm vi rõ, có Non-goals.
 - [ ] Nếu là feature nghiệp vụ: có BA spec với Business Rules, actors, user journeys, AC và không còn quyết định nghiệp vụ blocking chưa được duyệt.
+- [ ] Nếu thay đổi giao diện: có UI/UX spec được review (user flows, screen hierarchy, UI states, responsive, accessibility, UX acceptance criteria).
 - [ ] Có Acceptance Criteria kiểm chứng được.
 - [ ] API contract / DB / Redis/Kafka message nếu liên quan.
 - [ ] Dependency được gắn hoặc liệt kê; không vượt quá 8–10 giờ nếu có thể chia nhỏ.
@@ -35,7 +37,7 @@ For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promot
 
 ## Phát triển theo GitHub Flow
 1. Chọn Issue ở Ready, kiểm tra prerequisite và capacity sprint.
-2. Với feature nghiệp vụ, xác nhận BA spec / business decisions trước; sau đó xác nhận Technical Design (có thể đính kèm markdown vào Issue).
+2. Với feature nghiệp vụ, xác nhận BA spec/business decisions trước; với thay đổi UI, review UI/UX spec; sau đó xác nhận Technical Design/API handoff (có thể đính kèm markdown vào Issue).
 3. Tạo branch `feature/<ISSUE-ID>-slug`, `fix/<ISSUE-ID>-slug` hoặc `chore/<ISSUE-ID>-slug` từ `main`.
 4. Implement theo từng lát nhỏ; backend + frontend + tests cùng một AC.
 5. Chạy `mvn -B -ntp verify -f backend/pom.xml` và `cd frontend && npm ci && npm run build`.
