@@ -40,15 +40,17 @@ Instructions for Codex or other coding agents working on this repository.
 
 ## Multi-Agent orchestration (project-scoped custom Codex agents)
 - See `docs/project-management/MULTI_AGENT.md` and `.codex/agents/*.toml` for role definitions.
-- The **main agent is coordinator**. Do not behave as a single agent doing all specialist work on complicated, cross-service tasks. Delegate suitably scoped analysis to `planner`, `architect`, `qa`, or `security`, and implementation to `backend`, `frontend`, or `devops`.
+- The **main agent is coordinator**. Do not behave as a single agent doing all specialist work on complicated, cross-service tasks. Delegate suitably scoped analysis to `business-analyst`, `planner`, `architect`, `qa`, or `security`, and implementation to `backend`, `frontend`, or `devops`.
 - Before delegation decide file ownership, dependencies, expected output and acceptance evidence. Parallelize independent reviews; **never parallel-edit the same file**.
 - On routine changes spawn only required agents; max 3 concurrent subagents is configured in `.codex/config.toml` to control cost and merge conflicts.
-- On BASE-01 prefer `architect` + `qa` + `security` for independent read-only audit. On Cart/Order code prefer design → backend/frontend execution → independent QA/Security review. For Kafka/ELK use architect → devops → QA.
+- On BASE-01 prefer `architect` + `qa` + `security` for independent read-only audit. On new Cart/Order/Payment/Review business features, delegate `business-analyst` using `ecommerce-domain` to define rules and AC first, then architect → backend/frontend → independent QA/Security review. BA owns WHAT/WHY; architect owns HOW. For Kafka/ELK use architect → devops → QA.
 - Subagents are on-demand and do not run automatically from their TOML definitions. If delegation is unavailable, explain the limitation and follow the same role-based checklists sequentially.
 
 ## Project-local reusable Skills
-- Skill catalog: `docs/project-management/SKILLS.md`; manifests: `.agents/skills/{microservice-design,spring-boot-development,vue-development,security-review,testing-strategy,infrastructure}/SKILL.md`.
+- Skill catalog: `docs/project-management/SKILLS.md`; manifests: `.agents/skills/{ecommerce-domain,microservice-design,spring-boot-development,vue-development,security-review,testing-strategy,infrastructure}/SKILL.md`.
 - Load a matching Skill only when the assigned Issue actually calls for that workflow; Skills are **shared procedures**, not one Skill per agent and not always-on processes.
 - Use `microservice-design` before implementation involving new services or distributed consistency, `testing-strategy` when preparing acceptance evidence, and `security-review` for auth/RBAC/ownership sensitive changes.
 - Backend/frontend/DevOps agents should consult their respective implementation Skill, then produce the documented output and test evidence. The coordinator remains responsible for reviewing combined changes.
 - **Skill presence does not prove execution**. Report what was actually checked, tested and delegated.
+- For business-facing Issues, load `ecommerce-domain` in `business-analyst` first to clarify user stories, rule IDs, edge cases, AC and decisions requiring user approval. Do not let Architect or Backend invent unapproved commerce rules or change sprint scope silently.
+- Planner estimates **after** BA clarifies scope; for infrastructure/security-only tasks, BA review is optional and should not delay fixes.
