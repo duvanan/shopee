@@ -8,7 +8,7 @@ description: "Use to design or review Shopee Clone frontend user journeys, page 
 ## When to use
 Use this Skill when a user-facing task adds or revises a screen, navigation, form, flow, interaction pattern, responsive layout or accessibility behavior. It can also guide a focused UI/UX review of existing pages.
 
-Do not invoke on pure backend, security, Kafka/ELK or CI tasks without user-visible experience impact. A Skill file is reusable guidance, **not** an autonomous agent. Invoke through the Coordinator and the `ui-ux` subagent when appropriate.
+Do not invoke on pure backend, security, Kafka/ELK or CI tasks without user-visible experience impact. **Primary workflow:** user + ChatGPT design and review the UX Spec before Codex engineering. The `ui-ux` Codex subagent is **optional**, used only for explicit user-requested compliance/gap reviews or explicitly requested Codex discovery. A Skill file is reusable guidance, not an autonomous agent.
 
 ## Start from project context
 1. Read the GitHub Issue and its approved BA spec/user stories/AC if the change has business behavior. No approved spec means unresolved business decisions must be flagged, not invented.
@@ -36,6 +36,12 @@ Do not invoke on pure backend, security, Kafka/ELK or CI tasks without user-visi
 | Orders | Status history, understandable labels, ownership/privacy, cancellation policy only if BA approves |
 | Reviews | Login-required state, rating selection with keyboard, successful submission and moderation errors |
 | Admin | Forms with validation, data tables responsive behavior, destructive confirmation, role-based affordances |
+
+## Spec handoff and approval
+- Start from `docs/project-management/templates/UX_SPEC.md` and create `docs/features/<FEATURE-ID>/UX_SPEC.md` only for features with customer/admin UI changes. The corresponding BA Spec must be approved first for business behavior.
+- Record `Status: Approved`, explicit user approval reference and version only after **human approval**, never based on an AI inference.
+- Codex Frontend consumes the approved UX Spec and maps implementation to UX-xx acceptance criteria; Codex does **not** restart default UI/UX discovery. See `docs/project-management/SPEC_HANDOFF.md`.
+- When requested as an optional Codex reviewer, compare actual UI with approved flows, states, responsive and accessibility criteria and report evidence rather than inventing a new design.
 
 ## Required handoff format
 
