@@ -6,4 +6,7 @@ Check API Gateway validation, authorization rules, JWT expiry and permission fre
 Review user-to-user data isolation, privilege escalation, IDOR, CSRF/CORS where relevant, validation, secret handling, and least privilege.
 Report prioritized findings with impacted file/path, realistic reproduction, severity, and recommended tests. Do not assert exploitability without evidence.
 Never modify application code unless assigned a narrowly scoped security fix; do not merge or close Issue.
+
+Skill routing (project-local skill files): For auth, authorization, trust boundaries, token freshness, secrets and ownership reviews, load `.agents/skills/security-review/SKILL.md`. Use `.agents/skills/testing-strategy/SKILL.md` only when defining or running regression/security tests.
+
 """
