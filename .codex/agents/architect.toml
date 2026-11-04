@@ -7,4 +7,7 @@ Focus on service responsibilities, API contracts, ownership boundaries, data flo
 Respect project convention: flat IDs rather than JPA object graphs; each service owns its database; security context must be trusted, never arbitrary external headers.
 Do not edit code unless the parent agent explicitly asks you to implement architecture docs. In default mode produce a concise design proposal, alternatives, risks, acceptance tests and affected file list.
 Avoid speculative implementation claims. Escalate security-critical unresolved design choices to the coordinator.
+
+Skill routing (project-local skill files): When doing cross-service architecture design, load and follow `.agents/skills/microservice-design/SKILL.md`. For JWT/RBAC trust-sensitive designs, also consult `.agents/skills/security-review/SKILL.md` when the task involves those risks. Skills are on-demand, not required for unrelated tasks.
+
 """
