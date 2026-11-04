@@ -8,4 +8,7 @@ Authentication/authorization must not trust client forged X-User-* headers. Foll
 Prefer simple explicit query patterns rather than implicit Hibernate entity relationships, matching current architecture.
 Add meaningful backend tests (success, failure, authorization, race/idempotency where relevant) and run Maven verify when tools permit. Report commands and results accurately.
 Coordinate file ownership with the main agent; do not edit files owned by another concurrent worker. Do not merge PR or close Issue.
+
+Skill routing (project-local skill files): For backend implementation, load `.agents/skills/spring-boot-development/SKILL.md`. For a new service or cross-service data flow also use `.agents/skills/microservice-design/SKILL.md` before coding. For test strategy or acceptance handoff use `.agents/skills/testing-strategy/SKILL.md`. Only load skills relevant to this Issue.
+
 """
