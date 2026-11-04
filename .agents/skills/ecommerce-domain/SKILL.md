@@ -8,7 +8,7 @@ description: "Analyze Shopee Clone e-commerce marketplace business requirements 
 ## When to use
 Use this Skill when an Issue introduces or changes **e-commerce business behavior**: product/catalog, cart, inventory/stock, address, checkout, order, mock payment, order fulfillment, reviews, multi-seller, promotion, shipping, refund or return.
 
-Do not use for infrastructure-only tasks (CI, Kafka cluster setup, ELK) unless they require interpreting an explicit commerce business rule. This Skill does **not** run a business-analysis agent by itself; the coordinator must delegate and the agent must read it.
+Do not use for infrastructure-only tasks (CI, Kafka cluster setup, ELK) unless they require interpreting an explicit commerce business rule. **Primary workflow:** user + ChatGPT use this Skill to draft the BA Spec, which the user explicitly reviews and approves before engineering. A Codex `business-analyst` agent may use it only for an explicit user-requested gap/compliance review or when the user explicitly requests BA discovery in Codex. This Skill does **not** automatically launch an agent.
 
 ## Project facts and scope boundary
 - Shopee Clone is a learning project, not a statement about the real Shopee platform's internal behavior.
@@ -42,6 +42,13 @@ Do not use for infrastructure-only tasks (CI, Kafka cluster setup, ELK) unless t
 6. **Write verifiable acceptance criteria.** Prefer concise Gherkin Given/When/Then: user-visible behavior and expected API errors; avoid mixing implementation choice into acceptance criteria.
 7. **Surface unanswered questions.** Give 1–3 options where useful, recommend a default labeled **proposal pending approval**, and flag decisions that affect scope or data consistency. Never silently decide business policy.
 8. **Handoff to architect/planner/QA.** Architect gets rules/state transitions and desired consistency, Planner gets estimate/dependency impacts, QA gets a scenario matrix. Do not mark the Issue Ready if blocking business rules remain unresolved.
+
+## Spec handoff and approval
+- Start from `docs/project-management/templates/BA_SPEC.md`, creating `docs/features/<FEATURE-ID>/BA_SPEC.md` for the actual feature. Do not treat the template as an approved spec.
+- Separate **approved BR/AC** from proposed/unknown decisions; retain user stories, edge cases, ownership and exception paths.
+- Record `Status: Approved` only when the **user explicitly approved** the content, including approval reference/date. ChatGPT or a Codex agent cannot self-approve.
+- Codex Coordinator consumes the approved spec; it does **not** routinely call BA to restart discovery. Read `docs/project-management/SPEC_HANDOFF.md` for the contract and exceptions.
+- When asked for a Codex compliance review, compare existing implementation against approved BR-xx / AC-xx and report discrepancies without altering approved policy.
 
 ## Required output template
 
