@@ -1,56 +1,36 @@
-# Shopee Clone — Project Skill Catalog
+# Shopee Clone — Skill Catalog (Hybrid ChatGPT + Codex)
 
-**Eight reusable Codex Skills** live under `.agents/skills/<skill-name>/SKILL.md`. Each uses YAML frontmatter with `name` and `description`. A Skill is a reusable workflow, not a separate agent or an always-running process.
+The project has **eight reusable Skill manifests** under `.agents/skills/`. **Skills are workflows, not always-running agents.** User-approved feature specs are the contract for engineering. See `SPEC_HANDOFF.md` and the templates in `docs/project-management/templates/`.
 
-## Role → Skill mapping
+## Primary ownership
 
-| Role | Primary Skill / reference | Additional Skill when relevant |
+| Skill | Main use | Users / agents |
 | --- | --- | --- |
-| Main Coordinator | `AGENTS.md`, `WORKFLOW.md` and assigned Issue | Delegates specialists based on scope |
-| `business-analyst` | `ecommerce-domain` | None required |
-| `ui-ux` | `ui-ux-design` | Approved BA Spec and existing frontend screens |
-| `planner` | `WORKFLOW.md`, `ROADMAP_2026_2027.md` | Review BA Spec before final estimates |
-| `architect` | `microservice-design` | BA Spec and `ecommerce-domain` for business context, `security-review` for auth |
-| `backend` | `spring-boot-development` | `microservice-design`, `testing-strategy` |
-| `frontend` | `vue-development` | Approved UI/UX Spec, `ui-ux-design` for reference, `testing-strategy` |
-| `qa` | `testing-strategy` | BA AC/business rules and `security-review` where appropriate |
-| `security` | `security-review` | `testing-strategy` for regression |
-| `devops` | `infrastructure` | `microservice-design`, `testing-strategy` |
+| `ecommerce-domain` | BA discovery, business rules, AC, edge cases and domain glossary | **User + ChatGPT**; optional Codex BA compliance review |
+| `ui-ux-design` | User flows, screen/wireframe outlines, UI states, responsive/a11y and UX criteria | **User + ChatGPT**; optional Codex UI/UX compliance review |
+| `microservice-design` | Backend/system Technical Design, service boundaries and consistency | Codex `architect` |
+| `spring-boot-development` | Backend implementation and tests | Codex `backend` |
+| `vue-development` | Vue frontend implementation of approved UX Spec | Codex `frontend` |
+| `testing-strategy` | AC/UX acceptance, unit/integration/E2E/failure testing | Codex `qa`, implementers as relevant |
+| `security-review` | JWT/RBAC, user ownership, Gateway and trust-boundary review | Codex `security` and relevant implementers |
+| `infrastructure` | Docker/CI/Kafka/ELK and recovery | Codex `devops` |
 
-## When each Skill applies
+`planner` uses the workflow/roadmap and approved specs to evaluate estimates and dependencies. No separate planning Skill needed.
 
-- **`ecommerce-domain`**: user journeys, actors, order/cart/stock/payment business rules, exception cases, Gherkin AC, multi-seller vs MVP scope. BA uses before technical design for business-facing features.
-- **`ui-ux-design`**: user flows, screen hierarchy, interaction specs, empty/loading/error/success states, responsive layouts, accessible patterns and UX acceptance criteria for customer/admin screens.
-- **`microservice-design`**: service boundaries, API/data contracts, distributed consistency and failure scenarios.
-- **`spring-boot-development`**: Java/Spring implementation, validation, Flyway, Redis/Kafka and backend tests.
-- **`vue-development`**: Vue/Pinia/Router, typed API integration, responsive UI and error states.
-- **`security-review`**: RBAC/JWT/session/ownership, Gateway trust boundaries and secrets.
-- **`testing-strategy`**: unit/integration/E2E, test evidence, reliability and negative-path matrix.
-- **`infrastructure`**: Docker/CI, Kafka 3-node KRaft, Filebeat → Kafka → Logstash → Elasticsearch/Kibana and recovery.
+## Contract between phases
 
-## Usage example: CART-01
+1. **User + ChatGPT** prepare a feature BA Spec from `templates/BA_SPEC.md` using `ecommerce-domain`.
+2. For customer/admin UI work, **User + ChatGPT** prepare UX Spec from `templates/UX_SPEC.md` using `ui-ux-design`.
+3. The **user explicitly approves** each required spec. The version, status, approval reference and decision owner are recorded in the canonical feature files.
+4. **Codex Coordinator** reads approved specs, assigns Architect → Backend/Frontend → QA/Security. Codex doesn't silently redo BA/UX.
+5. `business-analyst` and `ui-ux` Codex roles are retained for **optional user-requested read-only compliance reviews**, not default delegation.
+6. For backend-only, infra or technical security tasks, mark irrelevant specs N/A and use existing Issue AC or approved linked parent spec.
 
-1. Coordinator delegates `business-analyst`, explicitly loading `ecommerce-domain` and the Issue.
-2. BA delivers a **draft** with BR/AC plus unresolved decisions (e.g. product price changed while in cart; out-of-stock behavior).
-3. User approves business-policy choices. BA cannot approve them on the user's behalf.
-4. UI/UX designs Cart screen flow/states with `ui-ux-design`; Architect designs API/Redis contracts and concurrency from approved business behavior. Reconcile any data required by the interface before frontend.
-5. Planner checks estimate, dependencies and deadline; QA maps AC to test scenarios.
+**No Skill, template or agent may approve requirements on the user's behalf.** If a required spec is absent, Draft, contradictory or ambiguous, stop affected scope and request a decision.
 
-For **BASE-01** security audit, BA is not required; use Architect + QA + Security.
+## Verify after pulling the branch
 
-## Local check
-
-1. Pull current branch and start a fresh Codex session at repository root.
-2. Check the eight Skill files under `.agents/skills/` and nine agent TOMLs under `.codex/agents/`.
-3. Ask for an explicit `business-analyst` run with `ecommerce-domain`, then an `ui-ux` run with `ui-ux-design` on a user-facing feature; verify both actually load the Skills and produce BA/UX Specs.
-4. Avoid assuming agent launch, passing tests or approved rules solely because files exist.
-
-## Acceptance tracking
-
-- [x] Eight Skill manifests committed on workflow branch.
-- [x] Nine custom agent definitions available on workflow branch.
-- [x] Coordinator/Architect/Planner/QA/Frontend documented BA-first and UI/UX design handoff for user-facing commerce features.
-- [ ] Pull updated branch into local repo and confirm Codex discovers the new agent/Skill.
-- [ ] Validate a real BA Spec and UI/UX Spec against a GitHub Issue and resolve blocking decisions with the user.
-
-See `MULTI_AGENT.md` and `WORKFLOW.md` for orchestration and Definition of Ready/Done.
+- Confirm **eight** `.agents/skills/*/SKILL.md` manifests and **nine** `.codex/agents/*.toml` definitions are present.
+- Confirm `SPEC_HANDOFF.md`, `templates/BA_SPEC.md`, `templates/UX_SPEC.md` exist.
+- In a new Codex session, ask the Coordinator to summarize **which approved specs it read** and which specialist agents it actually spawned.
+- Use a real, user-approved feature spec to test the end-to-end handoff; templates alone are not approved.
