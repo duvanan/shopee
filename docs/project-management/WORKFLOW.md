@@ -18,18 +18,20 @@ Backlog → Ready → In Progress → In Review → Testing → Done.
 - **Done**: mọi AC và DoD đạt, PR merge vào main, issue đóng.
 - **Blocked**: dùng trường/nhãn riêng trong Project; ghi lý do, next action và ngày kiểm tra lại; báo rủi ro nếu quá 1 ngày làm việc.
 
-## Business Analysis gate (business-facing features)
-For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promotion Issues:
-1. Coordinator delegates `business-analyst` and the `ecommerce-domain` Skill to define actors, user journey, business rules (BR-xx), scope, edge cases and measurable AC.
-2. BA clearly separates implemented behavior, approved rules, proposals and blocking questions; decisions with business impact require user approval.
-3. For changes to customer/admin screens, Coordinator delegates `ui-ux` using `ui-ux-design` to define user flows, wireframes (when useful), interaction/states, responsive and accessibility checks. UX proposals needing product-policy choices go back to BA/user for approval.
-4. Architect designs APIs, state transitions and reliability using the **approved** BA specification and coordinates any UX-driven contract needs; Planner checks estimate/capacity; QA derives tests from both BA and UX AC.
-5. Business Analysis/UI-UX gates are not required for pure CI/ELK/infra changes or urgent security fixes with no user-visible or policy impact.
+## Product discovery and approved spec handoff (business-facing features)
+**User + ChatGPT**, not Codex by default, define business and UI/UX requirements:
+
+1. For Catalog, Cart, Inventory, Order, Checkout, Payment, Review and other commerce features: create `docs/features/<FEATURE-ID>/BA_SPEC.md` using `docs/project-management/templates/BA_SPEC.md` and `ecommerce-domain`.
+2. If customer/admin screens change: create `docs/features/<FEATURE-ID>/UX_SPEC.md` using `docs/project-management/templates/UX_SPEC.md` and `ui-ux-design`. Backend-only work can mark UX Spec N/A.
+3. **The user explicitly approves** required BA and UX Specs, with approval status/reference in those files. A template, Draft, or AI response alone is not approval.
+4. **Codex Coordinator** reads approved specs (or links to an approved parent-feature spec) and Issue before technical design/implementation. Architect, Backend, Frontend, QA and Security must comply with BR/AC/UX criteria. Conflicts or blocking missing decisions go back to the user; don't invent policies.
+5. Codex `business-analyst` and `ui-ux` roles are **optional on explicit user request** for read-only gap/compliance reviews, not routine discovery.
+6. Pure infrastructure, CI, logging, non-business security audits or urgent security fixes may use Issue AC without BA/UX documents. See `SPEC_HANDOFF.md` for details.
 
 ## Mỗi task: Definition of Ready (DoR)
 - [ ] Phạm vi rõ, có Non-goals.
-- [ ] Nếu là feature nghiệp vụ: có BA spec với Business Rules, actors, user journeys, AC và không còn quyết định nghiệp vụ blocking chưa được duyệt.
-- [ ] Nếu thay đổi giao diện: có UI/UX spec được review (user flows, screen hierarchy, UI states, responsive, accessibility, UX acceptance criteria).
+- [ ] Nếu là feature nghiệp vụ: có BA Spec **được người dùng duyệt** (Status: Approved + approval evidence), hoặc link đến parent-feature spec đã duyệt; không còn business decisions blocking.
+- [ ] Nếu thay đổi giao diện: có UX Spec **được người dùng duyệt** (flow, states, responsive, accessibility, UX criteria); nếu backend-only thì UX N/A.
 - [ ] Có Acceptance Criteria kiểm chứng được.
 - [ ] API contract / DB / Redis/Kafka message nếu liên quan.
 - [ ] Dependency được gắn hoặc liệt kê; không vượt quá 8–10 giờ nếu có thể chia nhỏ.
@@ -37,7 +39,7 @@ For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promot
 
 ## Phát triển theo GitHub Flow
 1. Chọn Issue ở Ready, kiểm tra prerequisite và capacity sprint.
-2. Với feature nghiệp vụ, xác nhận BA spec/business decisions trước; với thay đổi UI, review UI/UX spec; sau đó xác nhận Technical Design/API handoff (có thể đính kèm markdown vào Issue).
+2. Codex xác minh **user-approved BA Spec + UX Spec (nếu có UI)** hoặc approved parent-feature spec; không tự gọi BA/UI-UX làm discovery lại. Sau đó Architect hoàn thiện Technical Design/API handoff. Nếu thiếu/conflict spec cần thiết, dừng phần implementation liên quan và hỏi người dùng.
 3. Tạo branch `feature/<ISSUE-ID>-slug`, `fix/<ISSUE-ID>-slug` hoặc `chore/<ISSUE-ID>-slug` từ `main`.
 4. Implement theo từng lát nhỏ; backend + frontend + tests cùng một AC.
 5. Chạy `mvn -B -ntp verify -f backend/pom.xml` và `cd frontend && npm ci && npm run build`.
@@ -48,7 +50,7 @@ For Catalog, Cart, Order, Inventory, Checkout, Payment, Review, Seller or Promot
 **Không merge khi chưa chạy test. Không cho Codex tự quyết định Done/merge mà không kiểm chứng.**
 
 ## Definition of Done (DoD)
-- [ ] Hành vi đúng API contract và AC.
+- [ ] Hành vi đúng API contract, user-approved BA Business Rules/AC và UX acceptance criteria (nếu có giao diện).
 - [ ] Tests tự động phù hợp chạy pass; bao gồm lỗi và security của phần sửa.
 - [ ] Build backend/frontend pass.
 - [ ] Database migrations có tính tương thích/rollback note nếu thay schema.
