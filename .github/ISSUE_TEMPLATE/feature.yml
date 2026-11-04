@@ -1,0 +1,81 @@
+name: "Feature / Delivery Task"
+description: "Task chuẩn của Shopee Clone với AC, scope và deadline"
+title: "[Sx][ID] "
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Loại công việc"
+      options:
+        - "Feature"
+        - "Bug"
+        - "Chore"
+        - "Spike / Research"
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      options:
+        - "P0 - MVP core"
+        - "P1 - Beta"
+        - "P2 - Backlog"
+    validations:
+      required: true
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: "Sprint"
+      options:
+        - "S1 (2026-11-09 → 2026-11-22)"
+        - "S2 (2026-11-23 → 2026-12-06)"
+        - "S3 (2026-12-07 → 2026-12-20)"
+        - "S4 (2026-12-21 → 2027-01-03)"
+        - "S5 (2027-01-04 → 2027-01-17)"
+        - "S6 (2027-01-18 → 2027-01-31)"
+        - "S7 (2027-02-01 → 2027-02-14)"
+        - "S8 (2027-02-15 → 2027-02-28)"
+        - "Unscheduled"
+    validations:
+      required: true
+  - type: input
+    id: estimate
+    attributes:
+      label: "Estimate (giờ)"
+      placeholder: "Ví dụ: 6"
+    validations:
+      required: true
+  - type: input
+    id: target_date
+    attributes:
+      label: "Deadline (YYYY-MM-DD)"
+      placeholder: "2026-11-22"
+    validations:
+      required: true
+  - type: textarea
+    id: story
+    attributes:
+      label: "Mục tiêu & phạm vi"
+      placeholder: "As a ... I want ... so that ..."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria (đo lường được)"
+      placeholder: "- [ ] Khi ... thì ...\n- [ ] Nếu ... thì ..."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies, non-goals & risk"
+      placeholder: "Issue #... / Service ... / Không nằm trong scope ..."
+  - type: checkboxes
+    id: dor
+    attributes:
+      label: "Definition of Ready"
+      options:
+        - label: "Đã xác định API/Data contract và dependencies nếu cần"
+        - label: "Đã rõ phạm vi, acceptance criteria, estimate và deadline"
