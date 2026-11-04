@@ -1,66 +1,69 @@
-# Multi-Agent workflow for Shopee Clone (Codex)
+# Multi-Agent Workflow — Shopee Clone (Codex)
 
-> Added for the local Codex app / CLI / IDE. Files in `.codex/agents/` are **custom agent definitions**, not always-running processes. Actual subagent spawning depends on the Codex session and explicit delegation. Root `AGENTS.md` remains the shared repository policy.
+> `.codex/agents/*.toml` defines **on-demand custom subagents**. `AGENTS.md` supplies shared rules; `.agents/skills/*/SKILL.md` defines reusable procedures. The main Codex session is the Coordinator; definitions are not always-on agents.
 
-## Participants
+## Roles — 8 custom subagents + 1 main coordinator
 
-| Role | Agent name | Responsibility | Editing policy |
+| Role | Custom agent | Core responsibility | Default editing permission |
 | --- | --- | --- | --- |
-| Coordinator | Main Codex session | Read Issue, decide delegation, merge findings, ask user to review PR | Own integration |
-| Planning | `planner` | Scope/estimate, deadline, dependencies and sprint risks | Analysis only |
-| Architecture | `architect` | API/DB boundaries, consistency, technical design | Analysis by default |
-| Backend | `backend` | Spring Boot service implementation and backend tests | Assigned files only |
-| Frontend | `frontend` | Vue/Pinia/UI/API integration | Assigned files only |
-| QA | `qa` | Independent test matrix, test execution and evidence | Analysis by default |
-| Security | `security` | JWT/RBAC/Gateway/IDOR/trust-boundary review | Analysis by default |
-| DevOps | `devops` | Compose, CI, Kafka, ELK, health and recovery | Assigned files only |
+| Coordinator | Main Codex session | Choose delegation, integrate findings, prepare PR for human review | Integration only |
+| Business Analyst (BA) | `business-analyst` | Scope, actors, customer journeys, business rules, user stories, AC and edge cases | Read-only |
+| Planner | `planner` | Estimates, sprint capacity, milestones, dependencies and deadline risk | Read-only |
+| Architect | `architect` | API contracts, service ownership, data flow, reliability and technical design | Read-only by default |
+| Backend | `backend` | Spring Boot APIs, persistence, migrations, backend tests | Assigned files only |
+| Frontend | `frontend` | Vue/Pinia pages, API integration and UI tests | Assigned files only |
+| QA | `qa` | Independent test strategy, AC evidence, functional/reliability regression | Read-only by default |
+| Security | `security` | JWT/RBAC, trust boundary, spoofing, IDOR, secrets and privilege review | Read-only by default |
+| DevOps | `devops` | Docker/Compose, CI, Kafka, ELK, recovery tests | Assigned files only |
 
-## Delegation policy
-1. Main agent reads the GitHub Issue and `WORKFLOW.md`; calls `planner` when scope, estimate or deadline is uncertain.
-2. For service/data/API changes, delegate architecture to `architect` before coding.
-3. Implementers `backend`, `frontend`, `devops` work only on independently owned files; prefer sequential execution if their files overlap.
-4. `qa` and `security` review independently of implementation; they report evidence and blockers.
-5. Coordinator synthesizes results, checks DoD, creates PR and **waits for human approval** before merge/Done.
-6. Do not spawn all roles on every Issue. For simple docs issues, coordinator alone is sufficient; complex changes use 2–3 suitable subagents.
-7. Treat concurrency as 3 max here; independent exploratory reviews may run in parallel, conflicting writes must be sequential.
+## Domain workflow: BA before Architect
 
-## Typical flows
+For new commerce behavior (Catalog, Cart, Checkout, Order, Inventory, Payment, Review, Seller, Shipping, Returns):
 
-### Feature: CART-02
-`Coordinator → architect (Redis/API + service boundaries) → backend (Cart APIs) → qa + security (review/test) → PR → human review`.
-For CART-04 add `frontend` after API contract is stable.
+1. **Coordinator → BA:** Read Issue and `ecommerce-domain` Skill; write BA Spec with scope, actors, business rules (BR-xx), user journeys, AC, edge cases and open decisions. Mark proposed rules as proposals, *not approved requirements*.
+2. **Human decision gate:** Ask the user to resolve blocking business-policy decisions. Do not silently invent Shopee marketplace policies or expand MVP to multi-vendor.
+3. **Coordinator → Architect:** Translate approved business requirements into service boundaries, API/data contracts, consistency/reliability and error handling. Use `microservice-design`.
+4. **Planner:** Re-estimate/schedule after BA scope is clear; flag any sprint over 32 planned hours.
+5. **Implementers:** Delegate to `backend` / `frontend` / `devops` only as relevant. Assign distinct files; don't parallel-edit overlapping files.
+6. **QA + Security:** Review the resulting implementation and acceptance evidence independently using matching Skills.
+7. **Coordinator:** Consolidate, link Issue, create PR; **no merge or closing Issues without human review and DoD verification**.
 
-### Feature: OPS-01
-`Coordinator → architect (replication/failover design) → devops (3-node KRaft) → qa (fault test evidence) → PR`.
+For pure infrastructure/CI or baseline security audits where no new domain rule is requested, bypass BA and use only the relevant specialists.
 
-### Baseline: BASE-01
-`Coordinator → (qa, security, architect) in parallel read-only → consolidate issue findings → PR/docs`.
+## Example delegation flows
 
-## Start task prompt (send in Codex)
+- **BASE-01:** Coordinator → architect + qa + security in parallel (read-only) → findings and test matrix. BA not needed for technical-security baseline.
+- **CART-01 (design):** Coordinator → business-analyst (`ecommerce-domain`) → human confirms cart price/stock policy → architect (`microservice-design`) → planner/qa review.
+- **CART-02 (implementation):** Coordinator → backend (`spring-boot-development`) → qa (`testing-strategy`) and security (`security-review`) → PR → human review. Reuse approved CART-01 BA rules.
+- **OPS-01 (Kafka):** Coordinator → architect → devops (`infrastructure`) → qa failure tests → PR.
+
+Subagents are bounded to **three concurrent threads** through `.codex/config.toml`, excluding Coordinator. Eight definitions does not mean eight are always running. Prefer sequential handoff when business rules need approval or implementation files overlap.
+
+## Start prompts (send in VS Code Codex)
+
+**BA discovery for Cart**
+
 ```text
-Hãy thực hiện Issue #1 (BASE-01) trong duvanan/shopee theo AGENTS.md và WORKFLOW.md.
-Dùng custom subagents qa, security, architect để audit độc lập theo phạm vi.
-Main agent tổng hợp, đưa ra test matrix và tạo branch/PR phù hợp; không merge, không đóng Issue nếu chưa được tôi review.
+Phân tích Issue CART-01 theo AGENTS.md / WORKFLOW.md.
+Spawn subagent business-analyst, yêu cầu đọc ecommerce-domain Skill.
+Viết BA Spec: actors, User Stories, Business Rules (BR-xx), edge cases,
+Acceptance Criteria và câu hỏi cần tôi phê duyệt.
+Chưa gọi Backend/Frontend hoặc viết code. Architect chỉ thiết kế sau khi BA rules được duyệt.
 ```
 
-## Verify after merging the workflow PR
-- Pull latest `main`; restart Codex session to refresh project AGENTS/config instructions.
-- Check `.codex/config.toml` and `.codex/agents/{role}.toml` are present.
-- Ask explicitly for subagent delegation; inspect active threads (CLI `/subagents` when supported).
-- If custom agents do not appear, verify Codex version, trusted-project config and current agent availability.
-- A TOML file by itself does **not** launch an autonomous always-on agent; local project rules are not a scheduler.
+**Technical audit**
 
-References: https://learn.chatgpt.com/docs/agent-configuration/subagents and https://learn.chatgpt.com/docs/config-file/config-reference
+```text
+Audit BASE-01 với các subagents architect, qa, security (read-only)
+và skill tương ứng. Ghi bằng chứng verified vs suspected, không sửa code.
+```
 
-## Shared Skills
-The seven custom agent roles reuse six instruction-only project Skills located under `.agents/skills/`. See `docs/project-management/SKILLS.md` for the complete role-to-Skill matrix, invocation examples and runtime verification checklist.
+## Local verification
 
-- `architect` → `microservice-design` (+ `security-review` if trust-sensitive).
-- `backend` → `spring-boot-development` (+ design and testing when needed).
-- `frontend` → `vue-development` (+ `testing-strategy`).
-- `qa` → `testing-strategy`.
-- `security` → `security-review`.
-- `devops` → `infrastructure` (+ design/testing when needed).
-- `planner` → existing `WORKFLOW.md` / `ROADMAP_2026_2027.md`; no custom Skill required.
+1. Pull the updated feature branch to the local `shopee` folder and start a **new** Codex session in that folder.
+2. Confirm `.codex/agents/business-analyst.toml` and `.agents/skills/ecommerce-domain/SKILL.md` exist.
+3. Ask Coordinator to explicitly spawn `business-analyst`; request that it state the Skill it read and the resulting BA Spec.
+4. Check Codex subagent thread/activity UI (or CLI `/subagents` if supported). A TOML/Skill file by itself does not prove invocation.
+5. If agents/skills are not discoverable, verify project root, client/version, project trust and current Codex configuration.
 
-A Skill never launches an agent by itself. Coordinator chooses subagents and each specialist loads only matching Skills as needed.
+See `SKILLS.md` for the role-to-Skill mapping, and `WORKFLOW.md` for Done/Review rules.
