@@ -1,27 +1,51 @@
+name: shopee-clone
+
 services:
   postgres:
     image: postgres:16
     container_name: shopee-postgres
     environment:
-      POSTGRES_USER: shopee
-      POSTGRES_PASSWORD: shopee
+      # Local development defaults only; override through environment variables.
+      POSTGRES_USER: ${DB_USER:-shopee}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shopee}
       POSTGRES_DB: shopee_user
       # Bat buoc icu/vi-VN de ILIKE/case-insensitive search khop dung ky tu
       # co dau tieng Viet - xem docs/LOCAL_DEV_SETUP.md muc Postgres.
       POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=vi-VN"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
-      - shopee_postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - postgres_local_data:/var/lib/postgresql/data
+      - type: bind
+        source: ./infra/postgres/init-databases.sql
+        target: /docker-entrypoint-initdb.d/01-init-databases.sql
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     restart: unless-stopped
 
   redis:
+    profiles: ["cache"]
     image: redis:7-alpine
     container_name: shopee-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_local_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
     restart: unless-stopped
 
 volumes:
-  shopee_postgres_data:
+  postgres_local_data:
+  redis_local_data:

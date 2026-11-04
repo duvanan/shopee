@@ -8,7 +8,9 @@ spring:
     config:
       server:
         native:
-          search-locations: classpath:/config-repo
+          # Local files override bundled configuration. Both working directories
+          # (backend and backend/config-server) resolve backend/config-repo.
+          search-locations: classpath:/config-repo,file:./config-repo/,file:../config-repo/
   profiles:
     active: native
 

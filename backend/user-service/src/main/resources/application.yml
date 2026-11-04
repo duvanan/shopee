@@ -20,11 +20,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
 jwt:
   secret: ${JWT_SECRET:change-this-secret-in-production-min-256-bits-long}
   expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}

@@ -19,6 +19,9 @@ dist-ssr/
 .env
 .env.local
 
+# Local secrets served by Config Server
+/backend/config-repo/user-service.yml
+
 # Runtime logs (nohup/redirected stdout-stderr from local dev runs)
 *.log
 
