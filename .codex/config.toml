@@ -1,0 +1,5 @@
+# Shopee Clone: keep subagents bounded to reduce context, cost and conflicting edits.
+# The main Codex session is the coordinator; role definitions are under .codex/agents/.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
