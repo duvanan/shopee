@@ -1,52 +1,54 @@
-# Shopee Clone — Skill Catalog & Routing
+# Shopee Clone — Project Skill Catalog
 
-Six project-local, instruction-only Codex Skills live at `.agents/skills/<name>/SKILL.md`. Each file includes **YAML frontmatter** `name` and `description` for discovery. Skills are shared reusable workflows, not persistent agents, and are loaded only when relevant. Agent-specific guidance lives under `.codex/agents/`.
+**Seven reusable Codex Skills** live under `.agents/skills/<skill-name>/SKILL.md`. Each uses YAML frontmatter with `name` and `description`. A Skill is a reusable workflow, not a separate agent or an always-running process.
 
-## Role → reusable Skill mapping
+## Role → Skill mapping
 
-| Codex role | Primary Skill | Extra Skill when needed |
+| Role | Primary Skill / reference | Additional Skill when relevant |
 | --- | --- | --- |
-| Coordinator (main session) | Read `AGENTS.md`, workflow and assigned Issue | Select delegated specialist skills |
-| `planner` | `docs/project-management/WORKFLOW.md`, `ROADMAP_2026_2027.md` | No separate planning Skill yet |
-| `architect` | `microservice-design` | `security-review` for auth/trust |
+| Main Coordinator | `AGENTS.md`, `WORKFLOW.md` and assigned Issue | Delegates specialists based on scope |
+| `business-analyst` | `ecommerce-domain` | None required |
+| `planner` | `WORKFLOW.md`, `ROADMAP_2026_2027.md` | Review BA Spec before final estimates |
+| `architect` | `microservice-design` | BA Spec and `ecommerce-domain` for business context, `security-review` for auth |
 | `backend` | `spring-boot-development` | `microservice-design`, `testing-strategy` |
 | `frontend` | `vue-development` | `testing-strategy` |
-| `qa` | `testing-strategy` | `security-review` when relevant |
-| `security` | `security-review` | `testing-strategy` for test matrix |
+| `qa` | `testing-strategy` | BA AC/business rules and `security-review` where appropriate |
+| `security` | `security-review` | `testing-strategy` for regression |
 | `devops` | `infrastructure` | `microservice-design`, `testing-strategy` |
 
-### When to use which Skill
+## When each Skill applies
 
-- `microservice-design`: service boundaries, Cart/Order/Inventory/Payment, API/event design and consistency.
-- `spring-boot-development`: Java service implementation, Flyway, Redis/Kafka integration, backend verification.
-- `vue-development`: Vue 3/Pinia/Router, forms, typed Axios integration and UI states.
-- `security-review`: JWT, RBAC, 401/403, role revocation, X-User-* trust boundary, IDOR and secrets.
-- `testing-strategy`: test matrix, reproducible unit/integration/E2E evidence and failure-mode QA.
-- `infrastructure`: Docker/CI, Kafka 3-node KRaft, Filebeat → Kafka → Logstash → Elasticsearch/Kibana and recovery.
+- **`ecommerce-domain`**: user journeys, actors, order/cart/stock/payment business rules, exception cases, Gherkin AC, multi-seller vs MVP scope. BA uses before technical design for business-facing features.
+- **`microservice-design`**: service boundaries, API/data contracts, distributed consistency and failure scenarios.
+- **`spring-boot-development`**: Java/Spring implementation, validation, Flyway, Redis/Kafka and backend tests.
+- **`vue-development`**: Vue/Pinia/Router, typed API integration, responsive UI and error states.
+- **`security-review`**: RBAC/JWT/session/ownership, Gateway trust boundaries and secrets.
+- **`testing-strategy`**: unit/integration/E2E, test evidence, reliability and negative-path matrix.
+- **`infrastructure`**: Docker/CI, Kafka 3-node KRaft, Filebeat → Kafka → Logstash → Elasticsearch/Kibana and recovery.
 
-## Example
+## Usage example: CART-01
 
-**Issue #1 (BASE-01) — audit:** Coordinator delegates independent read-only reviews to `architect`, `qa` and `security`; they use relevant design/testing/security Skills as needed, then coordinator records findings and tests. No backend implementation subagent required.
+1. Coordinator delegates `business-analyst`, explicitly loading `ecommerce-domain` and the Issue.
+2. BA delivers a **draft** with BR/AC plus unresolved decisions (e.g. product price changed while in cart; out-of-stock behavior).
+3. User approves business-policy choices. BA cannot approve them on the user's behalf.
+4. Architect designs API/Redis contracts and concurrency based on approved behavior.
+5. Planner checks estimate, dependencies and deadline; QA maps AC to test scenarios.
 
-**Issue #6 (CART-02) — Cart Backend:** `architect` uses `microservice-design` for Redis/API/failure matrix; `backend` uses `spring-boot-development` for implementation; `qa` uses `testing-strategy`. Review then PR.
+For **BASE-01** security audit, BA is not required; use Architect + QA + Security.
 
-**Issue #30 (OPS-02) — ELK:** `devops` uses `infrastructure`; `qa` uses `testing-strategy` to verify broker/log pipeline outages.
+## Local check
 
-## How to verify locally after merge
+1. Pull current branch and start a fresh Codex session at repository root.
+2. Check the seven Skill files under `.agents/skills/` and eight agent TOMLs under `.codex/agents/`.
+3. Ask for an explicit `business-analyst` run with `ecommerce-domain`; check whether Codex actually loads it and produces a BA Spec.
+4. Avoid assuming agent launch, passing tests or approved rules solely because files exist.
 
-1. `git pull` / checkout latest branch and start a new Codex session in this repository.
-2. Inspect `.agents/skills/<skill-name>/SKILL.md`; verify the file begins with `---` and YAML keys `name`, `description`.
-3. Ask Codex to list discoverable project Skills or reference one explicitly by name, e.g. `Use spring-boot-development for CART-02`.
-4. For multi-agent work, ask coordinator to delegate and inspect subagent results; Skill discovery does not prove an agent was launched.
-5. If Codex does not discover these skills, verify active working directory, supported client/version and project trust/config; refer to current Codex documentation.
+## Acceptance tracking
 
-## Acceptance check (repository config vs runtime)
+- [x] Seven Skill manifests committed on workflow branch.
+- [x] Eight custom agent definitions available on workflow branch.
+- [x] Coordinator/Architect/Planner/QA documented BA-first handoff for commerce features.
+- [ ] Pull updated branch into local repo and confirm Codex discovers the new agent/Skill.
+- [ ] Validate a real BA Spec against a GitHub Issue and resolve blocking business questions with the user.
 
-- [x] Six `SKILL.md` manifests committed on workflow branch.
-- [x] Agent TOML files reference matching Skills, if the corresponding task arises.
-- [x] `AGENTS.md` and `MULTI_AGENT.md` reference Skill catalog.
-- [ ] GitHub PR merged into main (pending user review).
-- [ ] Codex has discovered/loaded a Skill in an actual local session.
-- [ ] At least one end-to-end delegated Issue validated against AC and DoD.
-
-**No automatic Skill invocation, agent start, test pass or production readiness is implied by adding these files.**
+See `MULTI_AGENT.md` and `WORKFLOW.md` for orchestration and Definition of Ready/Done.
