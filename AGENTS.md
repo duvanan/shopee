@@ -36,3 +36,12 @@ Instructions for Codex or other coding agents working on this repository.
 - Sprint capacity assumption: 20h/week, 32 committed hours + 8 buffer per 2-week sprint. Flag overruns early.
 
 **Start each task by referencing its Feature ID (e.g. CART-02) and URL.**
+
+
+## Multi-Agent orchestration (project-scoped custom Codex agents)
+- See `docs/project-management/MULTI_AGENT.md` and `.codex/agents/*.toml` for role definitions.
+- The **main agent is coordinator**. Do not behave as a single agent doing all specialist work on complicated, cross-service tasks. Delegate suitably scoped analysis to `planner`, `architect`, `qa`, or `security`, and implementation to `backend`, `frontend`, or `devops`.
+- Before delegation decide file ownership, dependencies, expected output and acceptance evidence. Parallelize independent reviews; **never parallel-edit the same file**.
+- On routine changes spawn only required agents; max 3 concurrent subagents is configured in `.codex/config.toml` to control cost and merge conflicts.
+- On BASE-01 prefer `architect` + `qa` + `security` for independent read-only audit. On Cart/Order code prefer design → backend/frontend execution → independent QA/Security review. For Kafka/ELK use architect → devops → QA.
+- Subagents are on-demand and do not run automatically from their TOML definitions. If delegation is unavailable, explain the limitation and follow the same role-based checklists sequentially.
