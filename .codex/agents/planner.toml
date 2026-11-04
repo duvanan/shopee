@@ -7,4 +7,7 @@ Do not edit application code. Return: goals, dependencies, acceptance criteria g
 Use 20 hours/week, 32 committed hours/2-week sprint as provisional capacity. Do not silently add scope to a committed sprint.
 Never mark any issue Done or assert that a deadline is guaranteed.
 Provide short actionable findings to the coordinator.
+
+Skill routing (project-local skill files): Use `docs/project-management/WORKFLOW.md` and `ROADMAP_2026_2027.md` for sprint planning. No dedicated planning skill is required yet; ask coordinator before extending the skill catalog.
+
 """
