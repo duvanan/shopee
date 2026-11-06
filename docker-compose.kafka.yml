@@ -1,11 +1,11 @@
-# OPS-K1 / #45: configuration foundation only. K2 must replace the hard gate.
+# OPS-K2 / #46: secure development activation; no topic provisioning.
 # Standalone by design: the normal local PostgreSQL/Redis stack does not include Kafka.
 name: shopee-kafka-local
 
 x-kafka-foundation: &kafka-foundation
   image: apache/kafka:4.1.2@sha256:5cc2a2fd93fa2687b44015eee04fb2c3edd9e526bd64bf8bec5ff1e268772e0e
   profiles: ["kafka-foundation"]
-  entrypoint: ["/bin/sh", "/mnt/kafka-foundation/k1-block-start.sh"]
+  entrypoint: ["/bin/sh", "/mnt/kafka-foundation/k2-start.sh"]
   command: []
   restart: "no"
   # Resource hypotheses only; K3 must qualify combined system load.
@@ -18,7 +18,7 @@ x-kafka-foundation: &kafka-foundation
   security_opt: ["no-new-privileges:true"]
   networks: ["kafka-local"]
   labels:
-    com.shopee.kafka.activation: "blocked-until-K2"
+    com.shopee.kafka.activation: "secure-K2"
 
 services:
   kafka-1:
@@ -35,8 +35,18 @@ services:
         read_only: true
         bind: {create_host_path: false}
       - type: bind
-        source: ./infra/kafka/k1-block-start.sh
-        target: /mnt/kafka-foundation/k1-block-start.sh
+        source: ./infra/kafka/k2-start.sh
+        target: /mnt/kafka-foundation/k2-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k2-initialize.sh
+        target: /mnt/kafka-foundation/k2-initialize.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${KAFKA_K2_SECRETS_DIR:-/k2-unprovisioned}/nodes/kafka-1
+        target: /run/kafka-secrets
         read_only: true
         bind: {create_host_path: false}
 
@@ -54,8 +64,18 @@ services:
         read_only: true
         bind: {create_host_path: false}
       - type: bind
-        source: ./infra/kafka/k1-block-start.sh
-        target: /mnt/kafka-foundation/k1-block-start.sh
+        source: ./infra/kafka/k2-start.sh
+        target: /mnt/kafka-foundation/k2-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k2-initialize.sh
+        target: /mnt/kafka-foundation/k2-initialize.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${KAFKA_K2_SECRETS_DIR:-/k2-unprovisioned}/nodes/kafka-2
+        target: /run/kafka-secrets
         read_only: true
         bind: {create_host_path: false}
 
@@ -73,8 +93,18 @@ services:
         read_only: true
         bind: {create_host_path: false}
       - type: bind
-        source: ./infra/kafka/k1-block-start.sh
-        target: /mnt/kafka-foundation/k1-block-start.sh
+        source: ./infra/kafka/k2-start.sh
+        target: /mnt/kafka-foundation/k2-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k2-initialize.sh
+        target: /mnt/kafka-foundation/k2-initialize.sh
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${KAFKA_K2_SECRETS_DIR:-/k2-unprovisioned}/nodes/kafka-3
+        target: /run/kafka-secrets
         read_only: true
         bind: {create_host_path: false}
 

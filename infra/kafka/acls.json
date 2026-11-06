@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "principalSuffix": ",OU=ShopeeKafkaDev",
+  "bootstrapAdmin": "User:CN=bootstrap-admin,OU=ShopeeKafkaDev",
+  "topic": "notification.auth.requested.v1",
+  "group": "notification-auth-ingress-v1",
+  "grants": [
+    {"principal":"kafka-1", "resourceType":"cluster", "resource":"kafka-cluster", "operations":["ClusterAction","Describe"]},
+    {"principal":"kafka-2", "resourceType":"cluster", "resource":"kafka-cluster", "operations":["ClusterAction","Describe"]},
+    {"principal":"kafka-3", "resourceType":"cluster", "resource":"kafka-cluster", "operations":["ClusterAction","Describe"]},
+    {"principal":"kafka-1", "resourceType":"topic", "resource":"*", "operations":["Read"]},
+    {"principal":"kafka-2", "resourceType":"topic", "resource":"*", "operations":["Read"]},
+    {"principal":"kafka-3", "resourceType":"topic", "resource":"*", "operations":["Read"]},
+    {"principal":"user-producer", "resourceType":"topic", "resource":"notification.auth.requested.v1", "operations":["Write","Describe"]},
+    {"principal":"user-producer", "resourceType":"cluster", "resource":"kafka-cluster", "operations":["IdempotentWrite"]},
+    {"principal":"notification-consumer", "resourceType":"topic", "resource":"notification.auth.requested.v1", "operations":["Read","Describe"]},
+    {"principal":"notification-consumer", "resourceType":"group", "resource":"notification-auth-ingress-v1", "operations":["Read"]}
+  ]
+}
