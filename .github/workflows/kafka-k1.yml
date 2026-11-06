@@ -1,0 +1,35 @@
+name: Kafka K1 static foundation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docker-compose.kafka.yml'
+      - 'infra/kafka/**'
+      - 'tests/infra/kafka/**'
+      - 'docs/KAFKA_LOCAL.md'
+      - '.github/workflows/kafka-k1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docker-compose.kafka.yml'
+      - 'infra/kafka/**'
+      - 'tests/infra/kafka/**'
+      - '.github/workflows/kafka-k1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose and K1 policy without starting Kafka
+        shell: pwsh
+        run: ./infra/kafka/Validate-K1.ps1
+      - name: Independent QA checks and negative mutation fixtures
+        shell: pwsh
+        run: ./tests/infra/kafka/Test-K1.ps1 -ShellPath /bin/sh

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "activation": "blocked-until-K2",
+  "retentionApproval": "pending-KN-D03",
+  "topics": [
+    {
+      "name": "notification.auth.requested.v1",
+      "partitions": 6,
+      "replicationFactor": 3,
+      "config": {
+        "min.insync.replicas": 2
+      },
+      "retentionMs": null
+    }
+  ]
+}
