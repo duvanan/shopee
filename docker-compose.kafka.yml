@@ -1,0 +1,89 @@
+# OPS-K1 / #45: configuration foundation only. K2 must replace the hard gate.
+# Standalone by design: the normal local PostgreSQL/Redis stack does not include Kafka.
+name: shopee-kafka-local
+
+x-kafka-foundation: &kafka-foundation
+  image: apache/kafka:4.1.2@sha256:5cc2a2fd93fa2687b44015eee04fb2c3edd9e526bd64bf8bec5ff1e268772e0e
+  profiles: ["kafka-foundation"]
+  entrypoint: ["/bin/sh", "/mnt/kafka-foundation/k1-block-start.sh"]
+  command: []
+  restart: "no"
+  # Resource hypotheses only; K3 must qualify combined system load.
+  mem_limit: 2g
+  cpus: 1.0
+  environment:
+    KAFKA_HEAP_OPTS: "-Xms1g -Xmx1g"
+  user: "1000:1000"
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  networks: ["kafka-local"]
+  labels:
+    com.shopee.kafka.activation: "blocked-until-K2"
+
+services:
+  kafka-1:
+    <<: *kafka-foundation
+    hostname: kafka-1
+    ports: ["127.0.0.1:19092:19092"]
+    volumes:
+      - type: volume
+        source: kafka_1_data
+        target: /var/lib/kafka/data
+      - type: bind
+        source: ./infra/kafka/config/kafka-1.properties
+        target: /mnt/kafka-foundation/server.properties
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k1-block-start.sh
+        target: /mnt/kafka-foundation/k1-block-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+
+  kafka-2:
+    <<: *kafka-foundation
+    hostname: kafka-2
+    ports: ["127.0.0.1:29092:19092"]
+    volumes:
+      - type: volume
+        source: kafka_2_data
+        target: /var/lib/kafka/data
+      - type: bind
+        source: ./infra/kafka/config/kafka-2.properties
+        target: /mnt/kafka-foundation/server.properties
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k1-block-start.sh
+        target: /mnt/kafka-foundation/k1-block-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+
+  kafka-3:
+    <<: *kafka-foundation
+    hostname: kafka-3
+    ports: ["127.0.0.1:39092:19092"]
+    volumes:
+      - type: volume
+        source: kafka_3_data
+        target: /var/lib/kafka/data
+      - type: bind
+        source: ./infra/kafka/config/kafka-3.properties
+        target: /mnt/kafka-foundation/server.properties
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./infra/kafka/k1-block-start.sh
+        target: /mnt/kafka-foundation/k1-block-start.sh
+        read_only: true
+        bind: {create_host_path: false}
+
+networks:
+  kafka-local:
+    driver: bridge
+    internal: true
+
+volumes:
+  kafka_1_data:
+  kafka_2_data:
+  kafka_3_data:
