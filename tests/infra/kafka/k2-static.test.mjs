@@ -116,7 +116,8 @@ function shellFixture(body) {
     fs.writeFileSync(path.join(target, 'secrets/runtime.properties'), 'super.users=User:CN=bootstrap-admin,OU=ShopeeKafkaDev\n');
     for (const dir of ['logs', 'metadata']) fs.writeFileSync(path.join(target, 'data', dir, 'meta.properties'), 'version=1\nnode.id=1\ncluster.id=test-cluster\n');
     fs.writeFileSync(path.join(target, 'data/k2-static-quorum'), 'kraft.version=0\n');
-    fs.writeFileSync(path.join(target, 'launcher.sh'), '#!/bin/sh\nprintf "LAUNCH_REACHED\\n"\n');
+    fs.writeFileSync(path.join(target, 'launcher.sh'), '#!/bin/sh\nprintf "LAUNCH_REACHED\\n"\n', { mode: 0o755 });
+    fs.chmodSync(path.join(target, 'launcher.sh'), 0o755);
     const run = (scriptName, args = []) => {
       let script = fs.readFileSync(path.join(root, 'infra/kafka', scriptName), 'utf8');
       for (const [from, to] of [
