@@ -1,4 +1,4 @@
-name: Kafka K1 static foundation
+name: Kafka K2 secure static checks
 
 on:
   pull_request:
@@ -27,9 +27,22 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Compose and K1 policy without starting Kafka
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Compile bounded AdminClient probe against pinned Kafka client
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location https://repo.maven.apache.org/maven2/org/apache/kafka/kafka-clients/4.1.2/kafka-clients-4.1.2.jar --output "$RUNNER_TEMP/kafka-clients-4.1.2.jar"
+          mkdir -p "$RUNNER_TEMP/k2-probe"
+          javac --release 17 -cp "$RUNNER_TEMP/kafka-clients-4.1.2.jar" -d "$RUNNER_TEMP/k2-probe" infra/kafka/K2Probe.java
+      - name: Validate Compose and K2 security policy without starting Kafka
         shell: pwsh
-        run: ./infra/kafka/Validate-K1.ps1
+        run: ./infra/kafka/Validate-K2.ps1
       - name: Independent QA checks and negative mutation fixtures
         shell: pwsh
-        run: ./tests/infra/kafka/Test-K1.ps1 -ShellPath /bin/sh
+        run: ./tests/infra/kafka/Test-K2.ps1
